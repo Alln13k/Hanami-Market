@@ -18,6 +18,7 @@ import {
   Shield,
   Link2,
   DatabaseBackup,
+  Gift,
 } from 'lucide-react';
 
 const NAV = [
@@ -29,6 +30,7 @@ const NAV = [
   { href: '/welcome', label: 'Bienvenue', icon: PartyPopper },
   { href: '/invites', label: 'Invitations', icon: Link2 },
   { href: '/moderation', label: 'Modération', icon: Shield },
+  { href: '/giveaways', label: 'Giveaways', icon: Gift },
   { href: '/backup', label: 'Sauvegarde', icon: DatabaseBackup },
   { href: '/tickets', label: 'Tickets', icon: Ticket },
   { href: '/transcripts', label: 'Transcriptions', icon: History },

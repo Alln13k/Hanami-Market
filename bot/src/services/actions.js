@@ -10,6 +10,7 @@ import { banUser, kickUser, unbanUser } from './moderation.js';
 import { syncInvites } from './invites.js';
 import { syncGuild } from './channels.js';
 import { dumpBackup, deleteBackup, restoreBackup, syncBackupsTable } from './backup.js';
+import { finishGiveaway, checkExpiredGiveaways } from './giveaways.js';
 
 const POLL_INTERVAL = 5000; // 5 secondes
 
@@ -82,6 +83,9 @@ async function processAction(action) {
       case 'SYNC_BACKUPS':
         result = await syncBackupsTable();
         break;
+      case 'END_GIVEAWAY':
+        result = await finishGiveaway(payload.giveawayId);
+        break;
       default:
         result = { ok: true, skipped: true };
     }
@@ -136,6 +140,15 @@ export function startWorker() {
       /* ignore */
     }
   }, 24 * 60 * 60 * 1000);
+
+  // Vérification des giveaways expirés (filet de sécurité toutes les 30 secondes)
+  setInterval(async () => {
+    try {
+      await checkExpiredGiveaways();
+    } catch {
+      /* ignore */
+    }
+  }, 30 * 1000);
 }
 
 // Ferme les tickets ouverts sans activité depuis plus de N jours (réglage ticketAutoCloseDays, défaut 7)

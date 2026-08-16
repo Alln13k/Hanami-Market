@@ -10,6 +10,7 @@ import { startWorker } from './services/actions.js';
 import { syncGuild } from './services/channels.js';
 import { syncInvites } from './services/invites.js';
 import { syncBackupsTable, syncBotGuilds } from './services/backup.js';
+import { resumeGiveaways } from './services/giveaways.js';
 import { commands } from './commands/index.js';
 
 async function deployCommands() {
@@ -56,6 +57,7 @@ client.once(Events.ClientReady, async (c) => {
   await syncInvites().catch(() => {});
   await syncBackupsTable().catch(() => {});
   await syncBotGuilds().catch(() => {});
+  await resumeGiveaways().catch(() => {});
   await deployCommands();
   startWorker();
   console.log('🟢 Worker de tickets démarré.');

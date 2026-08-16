@@ -217,3 +217,32 @@ model Backup {
   note      String   @default("")
   createdAt DateTime @default(now())
 }
+
+// Giveaway : concours avec bouton "Participer", tirage de gagnants à la fin
+model Giveaway {
+  id          String          @id @default(cuid())
+  channelId   String          @db.VarChar(64)
+  messageId   String          @db.VarChar(64)
+  title       String
+  prize       String
+  description String          @default("")
+  winners     Int             @default(1)
+  endsAt      DateTime
+  endedAt     DateTime?
+  status      String          @default("RUNNING") // RUNNING | FINISHED
+  createdAt   DateTime        @default(now())
+  entries     GiveawayEntry[]
+}
+
+// Participation d'un membre à un giveaway
+model GiveawayEntry {
+  id         String   @id @default(cuid())
+  giveaway   Giveaway @relation(fields: [giveawayId], references: [id], onDelete: Cascade)
+  giveawayId String
+  userId     String   @db.VarChar(64)
+  userName   String   @default("")
+  avatarUrl  String   @default("")
+  createdAt  DateTime @default(now())
+
+  @@unique([giveawayId, userId])
+}
