@@ -12,12 +12,14 @@ import {
   Settings,
   LogOut,
   Trophy,
+  Camera,
 } from 'lucide-react';
 
 const NAV = [
   { href: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
   { href: '/products', label: 'Produits', icon: Package },
   { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
+  { href: '/proofs', label: 'Preuves', icon: Camera },
   { href: '/tickets', label: 'Tickets', icon: Ticket },
   { href: '/transcripts', label: 'Transcriptions', icon: History },
   { href: '/embeds', label: 'Embeds', icon: MessageSquare },

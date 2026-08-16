@@ -102,7 +102,7 @@ model TicketTranscript {
 }
 
 // File d'actions "panel -> bot" : le bot poll cette table et agit sur Discord
-// type: CLOSE_TICKET | REPLY_TICKET | SEND_EMBED | CREATE_TICKET_BUTTON | UPDATE_PRODUCTS_EMBED | UPDATE_LEADERBOARD_EMBED | ADD_SPEND | SYNC_BOOSTERS | SYNC_ROLES
+// type: CLOSE_TICKET | REPLY_TICKET | SEND_EMBED | CREATE_TICKET_BUTTON | UPDATE_PRODUCTS_EMBED | UPDATE_LEADERBOARD_EMBED | ADD_SPEND | SYNC_BOOSTERS | SYNC_ROLES | SEND_PROOF
 model BotAction {
   id         String    @id @default(cuid())
   type       String
@@ -130,4 +130,13 @@ model SpendRole {
   threshold Decimal  @db.Decimal(10, 2)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Preuve envoyée par le bot dans le salon proof (image + numéro automatique)
+model Proof {
+  id        Int      @id @default(autoincrement())
+  number    Int      @unique
+  image     Bytes    @db.LongBlob
+  mimeType  String   @default("image/png")
+  createdAt DateTime @default(now())
 }
