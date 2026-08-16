@@ -49,6 +49,32 @@ model GuildChannel {
   updatedAt DateTime @updatedAt
 }
 
+// Rôle Discord synchronisé pour les permissions / commandes perso
+model Role {
+  roleId    String   @id @db.VarChar(64)
+  name      String
+  color     String   @default("")
+  position  Int      @default(0)
+  updatedAt DateTime @updatedAt
+}
+
+// Commande personnalisée : quand un membre (avec le rôle requis) écrit le déclencheur,
+// le bot répond par un texte ou un embed
+model CustomCommand {
+  id           String   @id @default(cuid())
+  trigger      String   @unique
+  roleId       String?  @db.VarChar(64)
+  responseType String   @default("TEXT") // TEXT | EMBED
+  text         String   @default("")
+  title        String   @default("")
+  description  String   @default("")
+  color        String   @default("5865F2")
+  imageUrl     String   @default("")
+  footer       String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 // Transcription archivée à la fermeture d'un ticket (le ticket est ensuite supprimé)
 model TicketTranscript {
   id        String   @id @default(cuid())

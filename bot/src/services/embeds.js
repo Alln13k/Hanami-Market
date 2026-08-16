@@ -20,6 +20,8 @@ function buildEmbed(data) {
   return embed;
 }
 
+export { buildEmbed };
+
 // Envoie un embed custom dans un salon
 export async function sendCustomEmbed(channelId, data) {
   const guild = global.client?.guilds?.cache?.first();

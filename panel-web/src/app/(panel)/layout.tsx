@@ -8,6 +8,7 @@ const NAV = [
   { href: '/tickets', label: '🎫 Tickets' },
   { href: '/transcripts', label: '📼 Transcriptions' },
   { href: '/embeds', label: '📨 Embeds' },
+  { href: '/commands', label: '⌨️ Commandes' },
   { href: '/settings', label: '⚙️ Réglages' },
 ];
 

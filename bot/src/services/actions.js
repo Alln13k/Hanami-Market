@@ -1,7 +1,7 @@
 import { prisma } from '../prisma.js';
 import { closeTicket, replyToTicket } from './tickets.js';
 import { sendCustomEmbed, sendTicketButtonEmbed } from './embeds.js';
-import { syncChannels } from './channels.js';
+import { syncGuild } from './channels.js';
 
 const POLL_INTERVAL = 5000; // 5 secondes
 
@@ -59,10 +59,10 @@ export function startWorker() {
     }
   }, POLL_INTERVAL);
 
-  // Synchronisation des salons toutes les 5 minutes
+  // Synchronisation des salons et rôles toutes les 5 minutes
   setInterval(async () => {
     try {
-      await syncChannels();
+      await syncGuild();
     } catch {
       /* ignore */
     }

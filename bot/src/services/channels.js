@@ -1,7 +1,7 @@
 import { prisma } from '../prisma.js';
 
-// Synchronise la liste des salons du serveur dans la table GuildChannel
-export async function syncChannels() {
+// Synchronise la liste des salons et rôles du serveur dans la base
+export async function syncGuild() {
   const guild = global.client?.guilds?.cache?.first();
   if (!guild) return;
 
@@ -34,6 +34,25 @@ export async function syncChannels() {
         position: channel.position ?? 0,
         parentId: channel.parentId ?? null,
         isText,
+      },
+    });
+  }
+
+  await guild.roles.fetch();
+  for (const role of guild.roles.cache.values()) {
+    if (role.tags?.botId) continue; // ignore les rôles de bot
+    await prisma.role.upsert({
+      where: { roleId: role.id },
+      update: {
+        name: role.name,
+        color: role.hexColor.replace('#', ''),
+        position: role.position ?? 0,
+      },
+      create: {
+        roleId: role.id,
+        name: role.name,
+        color: role.hexColor.replace('#', ''),
+        position: role.position ?? 0,
       },
     });
   }

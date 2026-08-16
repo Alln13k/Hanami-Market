@@ -4,7 +4,7 @@ import { prisma, getSetting, setSetting } from './prisma.js';
 import { handleInteraction } from './events/interactionCreate.js';
 import { handleMessage } from './events/messageCreate.js';
 import { startWorker } from './services/actions.js';
-import { syncChannels } from './services/channels.js';
+import { syncGuild } from './services/channels.js';
 
 export const client = new Client({
   intents: [
@@ -28,7 +28,7 @@ client.once(Events.ClientReady, async (c) => {
     }
   }
 
-  await syncChannels().catch(() => {});
+  await syncGuild().catch(() => {});
   startWorker();
   console.log('🟢 Worker de tickets démarré.');
 });
