@@ -13,7 +13,17 @@ const TYPE_BADGES: Record<string, string> = {
   DM_USER: 'DM USER',
   REACT: 'REACT',
   DELETE: 'DELETE',
+  WAIT: 'WAIT',
 };
+
+function actionCount(steps: string) {
+  try {
+    const arr = JSON.parse(steps || '[]');
+    return Array.isArray(arr) ? arr.length : 1;
+  } catch {
+    return 1;
+  }
+}
 
 export default async function CommandsPage() {
   const [commands, roles, channels] = await Promise.all([
@@ -65,7 +75,7 @@ export default async function CommandsPage() {
               {commands.map((c) => (
                 <tr key={c.id}>
                   <td><code>{c.trigger}</code></td>
-                  <td><span className={`badge ${c.responseType === 'EMBED' ? 'PENDING' : 'OPEN'}`}>{TYPE_BADGES[c.responseType] || c.responseType}</span></td>
+                  <td><span className={`badge ${c.responseType === 'EMBED' ? 'PENDING' : 'OPEN'}`}>{TYPE_BADGES[c.responseType] || c.responseType}</span> {actionCount(c.steps) > 1 && <span className="muted" style={{ fontSize: 12 }}>×{actionCount(c.steps)}</span>}</td>
                   <td>{roleName(c.roleId)}</td>
                   <td className="muted">{channelName(c.channelId)}</td>
                   <td><strong>{c.usageCount}</strong></td>

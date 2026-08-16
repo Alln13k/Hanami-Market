@@ -2,15 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save, Plus, Check } from 'lucide-react';
+import { Save, Plus, Check, ArrowUp, ArrowDown, X } from 'lucide-react';
 
 type Role = { roleId: string; name: string };
 type Channel = { channelId: string; name: string };
 
-type FormData = {
-  trigger: string;
-  roleId: string;
-  responseType: string;
+type Step = {
+  type: string;
   text: string;
   title: string;
   description: string;
@@ -18,16 +16,31 @@ type FormData = {
   imageUrl: string;
   footer: string;
   reactions: string;
+  wait: string;
+};
+
+type FormData = {
+  trigger: string;
+  roleId: string;
+  channelId: string;
   cooldown: string;
   deleteTrigger: boolean;
-  channelId: string;
+  steps: Step[];
   usageCount?: number;
 };
 
-const EMPTY: FormData = {
-  trigger: '',
-  roleId: '',
-  responseType: 'TEXT',
+const STEP_LABELS: Record<string, string> = {
+  TEXT: '📝 Répondre (texte)',
+  EMBED: '🖼️ Répondre (embed)',
+  DM: '✉️ Message privé à l\'auteur',
+  DM_USER: '📨 Message privé au membre mentionné',
+  REACT: '🌸 Réactions',
+  DELETE: '🗑️ Supprimer le message',
+  WAIT: '⏳ Attendre (ms)',
+};
+
+const EMPTY_STEP: Step = {
+  type: 'TEXT',
   text: '',
   title: '',
   description: '',
@@ -35,18 +48,19 @@ const EMPTY: FormData = {
   imageUrl: '',
   footer: '',
   reactions: '',
-  cooldown: '0',
-  deleteTrigger: false,
-  channelId: '',
+  wait: '1000',
 };
 
-const TYPE_LABELS: Record<string, string> = {
-  TEXT: '📝 Texte',
-  EMBED: '🖼️ Embed',
-  DM: '✉️ Message privé (à l\'auteur)',
-  DM_USER: '📨 Message privé (au membre mentionné)',
-  REACT: '🌸 Réactions',
-  DELETE: '🗑️ Supprimer le message',
+type Legacy = {
+  responseType?: string;
+  text?: string;
+  title?: string;
+  description?: string;
+  color?: string;
+  imageUrl?: string;
+  footer?: string;
+  reactions?: string;
+  steps?: Step[];
 };
 
 export function CommandForm({
@@ -58,18 +72,65 @@ export function CommandForm({
 }: {
   roles: Role[];
   channels: Channel[];
-  initial?: Partial<FormData>;
+  initial?: Partial<FormData> & Legacy;
   commandId?: string;
   onDone?: () => void;
 }) {
   const router = useRouter();
-  const [form, setForm] = useState<FormData>({ ...EMPTY, ...initial });
+  const [form, setForm] = useState<FormData>(() => {
+    const steps: Step[] =
+      Array.isArray(initial?.steps) && initial.steps!.length > 0
+        ? initial.steps!.map((s) => ({ ...EMPTY_STEP, ...s }))
+        : [
+            {
+              ...EMPTY_STEP,
+              type: initial?.responseType || 'TEXT',
+              text: initial?.text || '',
+              title: initial?.title || '',
+              description: initial?.description || '',
+              color: initial?.color || 'f49ecd',
+              imageUrl: initial?.imageUrl || '',
+              footer: initial?.footer || '',
+              reactions: initial?.reactions || '',
+            },
+          ];
+    return {
+      trigger: initial?.trigger || '',
+      roleId: initial?.roleId || '',
+      channelId: initial?.channelId || '',
+      cooldown: initial?.cooldown || '0',
+      deleteTrigger: initial?.deleteTrigger || false,
+      steps,
+      usageCount: initial?.usageCount,
+    };
+  });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
 
-  function set<K extends keyof FormData>(key: K, value: FormData[K]) {
-    setForm((f) => ({ ...f, [key]: value }));
+  function setStep(i: number, patch: Partial<Step>) {
+    setForm((f) => ({
+      ...f,
+      steps: f.steps.map((s, idx) => (idx === i ? { ...s, ...patch } : s)),
+    }));
+  }
+
+  function addStep() {
+    setForm((f) => ({ ...f, steps: [...f.steps, { ...EMPTY_STEP }] }));
+  }
+
+  function removeStep(i: number) {
+    setForm((f) => ({ ...f, steps: f.steps.filter((_, idx) => idx !== i) }));
+  }
+
+  function moveStep(i: number, dir: -1 | 1) {
+    setForm((f) => {
+      const steps = [...f.steps];
+      const j = i + dir;
+      if (j < 0 || j >= steps.length) return f;
+      [steps[i], steps[j]] = [steps[j], steps[i]];
+      return { ...f, steps };
+    });
   }
 
   async function submit(e: React.FormEvent) {
@@ -77,10 +138,18 @@ export function CommandForm({
     if (!form.trigger.trim() || saving) return;
     setSaving(true);
     setError('');
+    const body = {
+      trigger: form.trigger,
+      roleId: form.roleId,
+      channelId: form.channelId,
+      cooldown: form.cooldown,
+      deleteTrigger: form.deleteTrigger,
+      steps: form.steps,
+    };
     const res = await fetch(commandId ? `/api/commands/${commandId}` : '/api/commands', {
       method: commandId ? 'PATCH' : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify(body),
     });
     setSaving(false);
     if (res.ok) {
@@ -94,10 +163,6 @@ export function CommandForm({
     }
   }
 
-  const isEmbed = form.responseType === 'EMBED';
-  const isText = form.responseType === 'TEXT' || form.responseType === 'DM' || form.responseType === 'DM_USER';
-  const isReact = form.responseType === 'REACT';
-
   return (
     <form onSubmit={submit}>
       <div className="row">
@@ -105,14 +170,14 @@ export function CommandForm({
           <label>Déclencheur</label>
           <input
             value={form.trigger}
-            onChange={(e) => set('trigger', e.target.value)}
+            onChange={(e) => setForm((f) => ({ ...f, trigger: e.target.value }))}
             placeholder="!legit"
             maxLength={80}
           />
         </div>
         <div>
           <label>Rôle requis (optionnel)</label>
-          <select value={form.roleId} onChange={(e) => set('roleId', e.target.value)}>
+          <select value={form.roleId} onChange={(e) => setForm((f) => ({ ...f, roleId: e.target.value }))}>
             <option value="">— Tout le monde —</option>
             {roles.map((r) => (
               <option key={r.roleId} value={r.roleId}>
@@ -125,16 +190,8 @@ export function CommandForm({
 
       <div className="row">
         <div>
-          <label>Type de réponse</label>
-          <select value={form.responseType} onChange={(e) => set('responseType', e.target.value)}>
-            {Object.entries(TYPE_LABELS).map(([v, l]) => (
-              <option key={v} value={v}>{l}</option>
-            ))}
-          </select>
-        </div>
-        <div>
           <label>Restreindre à un salon (optionnel)</label>
-          <select value={form.channelId} onChange={(e) => set('channelId', e.target.value)}>
+          <select value={form.channelId} onChange={(e) => setForm((f) => ({ ...f, channelId: e.target.value }))}>
             <option value="">— Partout —</option>
             {channels.map((c) => (
               <option key={c.channelId} value={c.channelId}>
@@ -143,86 +200,131 @@ export function CommandForm({
             ))}
           </select>
         </div>
-      </div>
-
-      {isEmbed ? (
-        <>
-          <div className="row">
-            <div>
-              <label>Titre</label>
-              <input value={form.title} onChange={(e) => set('title', e.target.value)} maxLength={256} />
-            </div>
-            <div>
-              <label>Couleur</label>
-              <input value={form.color} onChange={(e) => set('color', e.target.value)} placeholder="f49ecd" maxLength={6} />
-            </div>
-          </div>
-          <div>
-            <label>Description</label>
-            <textarea value={form.description} onChange={(e) => set('description', e.target.value)} rows={4} />
-          </div>
-          <div className="row">
-            <div>
-              <label>Image (URL, optionnel)</label>
-              <input value={form.imageUrl} onChange={(e) => set('imageUrl', e.target.value)} placeholder="https://..." />
-            </div>
-            <div>
-              <label>Footer</label>
-              <input value={form.footer} onChange={(e) => set('footer', e.target.value)} />
-            </div>
-          </div>
-        </>
-      ) : isReact ? (
-        <div>
-          <label>Réactions (emojis séparés par des espaces)</label>
-          <input
-            value={form.reactions}
-            onChange={(e) => set('reactions', e.target.value)}
-            placeholder="🌸 👍 ❤️"
-          />
-          <p className="muted" style={{ fontSize: 12, marginTop: 4 }}>
-            Le bot réagit au message du membre avec ces emojis.
-          </p>
-        </div>
-      ) : isText ? (
-        <div>
-          <label>{form.responseType === 'DM' ? 'Contenu du message privé' : form.responseType === 'DM_USER' ? 'Contenu du message privé envoyé au membre mentionné' : 'Texte de réponse'}</label>
-          <textarea value={form.text} onChange={(e) => set('text', e.target.value)} rows={4} />
-          <p className="muted" style={{ fontSize: 12, marginTop: 4 }}>
-            Variables : {'{user}'} {'{username}'} {'{displayname}'} {'{server}'} {'{channel}'} {'{args}'} {'{arg1}'} {'{arg2}'}… {'{mention}'}
-          </p>
-        </div>
-      ) : (
-        <div>
-          <p className="muted" style={{ fontSize: 13 }}>
-            🗑️ Le bot supprimera le message contenant le déclencheur (utile pour des commandes silencieuses).
-          </p>
-        </div>
-      )}
-
-      <div className="row">
         <div>
           <label>Cooldown (secondes)</label>
           <input
             type="number"
             min={0}
             value={form.cooldown}
-            onChange={(e) => set('cooldown', e.target.value)}
+            onChange={(e) => setForm((f) => ({ ...f, cooldown: e.target.value }))}
           />
-          <p className="muted" style={{ fontSize: 12, marginTop: 4 }}>0 = aucune limite. Délai entre deux utilisations par membre.</p>
-        </div>
-        <div>
-          <label>&nbsp;</label>
-          <label className="checkbox">
-            <input
-              type="checkbox"
-              checked={form.deleteTrigger}
-              onChange={(e) => set('deleteTrigger', e.target.checked)}
-            />
-            Supprimer le message de déclenchement
-          </label>
+          <p className="muted" style={{ fontSize: 12, marginTop: 4 }}>0 = aucune limite.</p>
         </div>
       </div>
+
+      <div>
+        <label className="checkbox">
+          <input
+            type="checkbox"
+            checked={form.deleteTrigger}
+            onChange={(e) => setForm((f) => ({ ...f, deleteTrigger: e.target.checked }))}
+          />
+          Supprimer le message de déclenchement
+        </label>
+      </div>
+
+      <div>
+        <label style={{ fontSize: 15, color: 'var(--text)' }}>Actions (exécutées dans l'ordre)</label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {form.steps.map((step, i) => (
+            <div
+              key={i}
+              style={{ border: '1px solid var(--border)', borderRadius: 10, padding: 14, background: 'var(--panel-2)' }}
+            >
+              <div className="flex justify-between" style={{ marginBottom: 10 }}>
+                <span className="flex">
+                  <span className="badge OPEN">#{i + 1}</span>
+                  <select
+                    value={step.type}
+                    onChange={(e) => setStep(i, { type: e.target.value })}
+                    style={{ maxWidth: 280 }}
+                  >
+                    {Object.entries(STEP_LABELS).map(([v, l]) => (
+                      <option key={v} value={v}>{l}</option>
+                    ))}
+                  </select>
+                </span>
+                <span className="flex">
+                  <button type="button" className="btn-secondary btn-small" onClick={() => moveStep(i, -1)} disabled={i === 0} title="Monter">
+                    <ArrowUp size={14} />
+                  </button>
+                  <button type="button" className="btn-secondary btn-small" onClick={() => moveStep(i, 1)} disabled={i === form.steps.length - 1} title="Descendre">
+                    <ArrowDown size={14} />
+                  </button>
+                  <button type="button" className="btn-red btn-small" onClick={() => removeStep(i)} title="Retirer cette action">
+                    <X size={14} />
+                  </button>
+                </span>
+              </div>
+
+              {step.type === 'EMBED' && (
+                <>
+                  <div className="row">
+                    <div>
+                      <label>Titre</label>
+                      <input value={step.title} onChange={(e) => setStep(i, { title: e.target.value })} maxLength={256} />
+                    </div>
+                    <div>
+                      <label>Couleur</label>
+                      <input value={step.color} onChange={(e) => setStep(i, { color: e.target.value })} placeholder="f49ecd" maxLength={6} />
+                    </div>
+                  </div>
+                  <div>
+                    <label>Description</label>
+                    <textarea value={step.description} onChange={(e) => setStep(i, { description: e.target.value })} rows={3} />
+                  </div>
+                  <div className="row">
+                    <div>
+                      <label>Image (URL, optionnel)</label>
+                      <input value={step.imageUrl} onChange={(e) => setStep(i, { imageUrl: e.target.value })} placeholder="https://..." />
+                    </div>
+                    <div>
+                      <label>Footer</label>
+                      <input value={step.footer} onChange={(e) => setStep(i, { footer: e.target.value })} />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {['TEXT', 'DM', 'DM_USER'].includes(step.type) && (
+                <div>
+                  <label>
+                    {step.type === 'DM' ? 'Contenu du message privé' : step.type === 'DM_USER' ? 'Contenu du message privé au membre mentionné' : 'Texte de réponse'}
+                  </label>
+                  <textarea value={step.text} onChange={(e) => setStep(i, { text: e.target.value })} rows={3} />
+                </div>
+              )}
+
+              {step.type === 'REACT' && (
+                <div>
+                  <label>Réactions (emojis séparés par des espaces)</label>
+                  <input value={step.reactions} onChange={(e) => setStep(i, { reactions: e.target.value })} placeholder="🌸 👍 ❤️" />
+                </div>
+              )}
+
+              {step.type === 'WAIT' && (
+                <div>
+                  <label>Durée d'attente (millisecondes)</label>
+                  <input type="number" min={0} max={60000} value={step.wait} onChange={(e) => setStep(i, { wait: e.target.value })} />
+                </div>
+              )}
+
+              {step.type === 'DELETE' && (
+                <p className="muted" style={{ margin: 0, fontSize: 13 }}>🗑️ Le message contenant le déclencheur sera supprimé à cette étape.</p>
+              )}
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 10 }}>
+          <button type="button" className="btn-secondary" onClick={addStep}>
+            <Plus size={16} /> Ajouter une action
+          </button>
+        </div>
+      </div>
+
+      <p className="muted" style={{ fontSize: 12, margin: 0 }}>
+        Variables disponibles dans les textes et embeds : {'{user}'} {'{username}'} {'{displayname}'} {'{server}'} {'{channel}'} {'{args}'} {'{arg1}'} {'{arg2}'}… {'{mention}'}
+      </p>
 
       {error && <p style={{ color: 'var(--red)', margin: 0, fontSize: 14 }}>{error}</p>}
       <div>

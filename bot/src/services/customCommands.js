@@ -38,6 +38,99 @@ async function autoDelete(channel, content, ms = 4000) {
   if (msg) setTimeout(() => msg.delete().catch(() => {}), ms);
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Construit la liste d'actions de la commande (steps JSON, sinon une action depuis les anciens champs)
+function buildSteps(cmd) {
+  let steps = [];
+  try {
+    steps = JSON.parse(cmd.steps || '[]');
+  } catch {
+    steps = [];
+  }
+  if (!Array.isArray(steps) || steps.length === 0) {
+    steps = [
+      {
+        type: cmd.responseType || 'TEXT',
+        text: cmd.text,
+        title: cmd.title,
+        description: cmd.description,
+        color: cmd.color,
+        imageUrl: cmd.imageUrl,
+        footer: cmd.footer,
+        reactions: cmd.reactions,
+      },
+    ];
+  }
+  return steps;
+}
+
+// Exécute une action (étape) de la commande
+async function runStep(message, step, ctx) {
+  const type = step.type || 'TEXT';
+  const { args } = ctx;
+
+  switch (type) {
+    case 'EMBED': {
+      await message.channel.send({
+        embeds: [
+          buildEmbed({
+            title: fillPlaceholders(step.title, { message, args }),
+            description: fillPlaceholders(step.description, { message, args }),
+            color: step.color,
+            imageUrl: step.imageUrl,
+            footer: fillPlaceholders(step.footer, { message, args }),
+            timestamp: true,
+          }),
+        ],
+      });
+      break;
+    }
+    case 'DM': {
+      const content = fillPlaceholders(step.text, { message, args }) || `Commande exécutée.`;
+      try {
+        await message.author.send({ content });
+      } catch {
+        await autoDelete(message.channel, `❌ Je ne peux pas t'envoyer de message privé (messages privés fermés).`, 5000);
+      }
+      break;
+    }
+    case 'DM_USER': {
+      const target = message.mentions?.users?.first();
+      if (!target) {
+        await autoDelete(message.channel, `❌ Mentionne une personne pour cette action : \`@pseudo\``, 5000);
+        break;
+      }
+      const content = fillPlaceholders(step.text, { message, args }).replace('{user}', target.toString());
+      try {
+        await target.send({ content });
+      } catch {
+        await autoDelete(message.channel, `❌ Impossible d'envoyer un message privé à **${target.username}** (DMs fermés).`, 5000);
+      }
+      break;
+    }
+    case 'REACT': {
+      const emojis = (step.reactions || '').split(/\s+/).filter(Boolean);
+      for (const emoji of emojis) {
+        await message.react(emoji).catch(() => {});
+      }
+      break;
+    }
+    case 'DELETE': {
+      await message.delete().catch(() => {});
+      break;
+    }
+    case 'WAIT': {
+      await sleep(Math.min(parseInt(step.wait, 10) || 0, 60000));
+      break;
+    }
+    default: {
+      const content = fillPlaceholders(step.text || ctx.cmd.trigger, { message, args });
+      await message.channel.send({ content });
+    }
+  }
+}
+
 async function executeCommand(message, cmd) {
   const args = getArgs(message.content, cmd.trigger);
   const userId = message.author.id;
@@ -56,75 +149,20 @@ async function executeCommand(message, cmd) {
     cooldowns.set(cmd.id, map);
   }
 
-  // Supprime le message de déclenchement si demandé
+  // Option globale : supprime le message de déclenchement au début
   if (cmd.deleteTrigger) {
     await message.delete().catch(() => {});
   }
 
-  switch (cmd.responseType) {
-    case 'EMBED': {
-      await message.channel.send({
-        embeds: [
-          buildEmbed({
-            title: fillPlaceholders(cmd.title, { message, args }),
-            description: fillPlaceholders(cmd.description, { message, args }),
-            color: cmd.color,
-            imageUrl: cmd.imageUrl,
-            footer: fillPlaceholders(cmd.footer, { message, args }),
-            timestamp: true,
-          }),
-        ],
-      });
-      break;
-    }
-    case 'DM': {
-      const content = fillPlaceholders(cmd.text, { message, args }) || `Commande ${cmd.trigger} exécutée.`;
-      try {
-        await message.author.send({ content });
-      } catch {
-        await autoDelete(message.channel, `❌ Je ne peux pas t'envoyer de message privé (messages privés fermés).`, 5000);
-      }
-      break;
-    }
-    case 'DM_USER': {
-      const target = message.mentions?.users?.first();
-      if (!target) {
-        await autoDelete(message.channel, `❌ Mentionne une personne pour cette commande : \`${cmd.trigger} @pseudo\``, 5000);
-        break;
-      }
-      const content = fillPlaceholders(cmd.text, { message, args }).replace('{user}', target.toString());
-      try {
-        await target.send({ content });
-        if (cmd.deleteTrigger === false) {
-          await autoDelete(message.channel, `✅ Message privé envoyé à **${target.username}**`, 4000);
-        }
-      } catch {
-        await autoDelete(message.channel, `❌ Impossible d'envoyer un message privé à **${target.username}** (DMs fermés).`, 5000);
-      }
-      break;
-    }
-    case 'REACT': {
-      const emojis = (cmd.reactions || '').split(/\s+/).filter(Boolean);
-      for (const emoji of emojis) {
-        await message.react(emoji).catch(() => {});
-      }
-      break;
-    }
-    case 'DELETE': {
-      // Le message est déjà supprimé si deleteTrigger est actif, sinon on le supprime ici
-      if (!cmd.deleteTrigger) await message.delete().catch(() => {});
-      break;
-    }
-    default: {
-      const content = fillPlaceholders(cmd.text || cmd.trigger, { message, args });
-      await message.channel.send({ content });
-    }
+  // Exécute chaque action dans l'ordre
+  for (const step of buildSteps(cmd)) {
+    await runStep(message, step, { args, cmd });
   }
 
   return true;
 }
 
-// Répond aux commandes personnalisées (déclencheur + rôle requis + toutes les options)
+// Répond aux commandes personnalisées (déclencheur + rôle requis + succession d'actions)
 export async function handleCustomCommand(message) {
   if (message.author.bot) return;
   if (!message.guild) return;

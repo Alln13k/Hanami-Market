@@ -121,6 +121,7 @@ model CustomCommand {
   deleteTrigger Boolean  @default(false) // supprime le message de déclenchement
   channelId     String?  @db.VarChar(64) // restriction à un salon (vide = partout)
   usageCount    Int      @default(0)
+  steps         String   @default("[]") // JSON : succession d'actions (TEXT, EMBED, DM, DM_USER, REACT, DELETE, WAIT)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

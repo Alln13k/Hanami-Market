@@ -9,7 +9,7 @@ export type BackupData = {
   spendRoles: { id: string; name: string; roleId: string; threshold: string; createdAt: string; updatedAt: string }[];
   proofs: { id: number; number: number; image: string; mimeType: string; createdAt: string }[];
   vouches: { id: string; messageId: string; channelId: string; userId: string; userName: string; targetUserId: string; targetName: string; price: string; product: string; quantity: number; createdAt: string }[];
-  customCommands: { id: string; trigger: string; roleId: string | null; responseType: string; text: string; title: string; description: string; color: string; imageUrl: string; footer: string; reactions: string; cooldown: number; deleteTrigger: boolean; channelId: string | null; usageCount: number; createdAt: string; updatedAt: string }[];
+  customCommands: { id: string; trigger: string; roleId: string | null; responseType: string; text: string; title: string; description: string; color: string; imageUrl: string; footer: string; reactions: string; cooldown: number; deleteTrigger: boolean; channelId: string | null; usageCount: number; steps: string; createdAt: string; updatedAt: string }[];
   members: { userId: string; name: string; avatarUrl: string; isBooster: boolean; joinedAt: string | null; updatedAt: string }[];
   channels: { channelId: string; name: string; type: string; position: number; parentId: string | null; isText: boolean; updatedAt: string }[];
   roles: { roleId: string; name: string; color: string; position: number; updatedAt: string }[];

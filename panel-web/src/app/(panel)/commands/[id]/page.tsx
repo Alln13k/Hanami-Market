@@ -15,6 +15,28 @@ export default async function CommandEditPage({ params }: { params: { id: string
 
   if (!command) notFound();
 
+  let steps: any[] = [];
+  try {
+    const parsed = JSON.parse(command.steps || '[]');
+    if (Array.isArray(parsed)) steps = parsed;
+  } catch {
+    steps = [];
+  }
+  if (steps.length === 0) {
+    steps = [
+      {
+        type: command.responseType,
+        text: command.text,
+        title: command.title,
+        description: command.description,
+        color: command.color,
+        imageUrl: command.imageUrl,
+        footer: command.footer,
+        reactions: command.reactions,
+      },
+    ];
+  }
+
   return (
     <>
       <h1 className="page-title">Modifier la commande</h1>
@@ -28,17 +50,10 @@ export default async function CommandEditPage({ params }: { params: { id: string
           initial={{
             trigger: command.trigger,
             roleId: command.roleId || '',
-            responseType: command.responseType,
-            text: command.text,
-            title: command.title,
-            description: command.description,
-            color: command.color,
-            imageUrl: command.imageUrl,
-            footer: command.footer,
-            reactions: command.reactions,
+            channelId: command.channelId || '',
             cooldown: String(command.cooldown),
             deleteTrigger: command.deleteTrigger,
-            channelId: command.channelId || '',
+            steps,
             usageCount: command.usageCount,
           }}
         />
