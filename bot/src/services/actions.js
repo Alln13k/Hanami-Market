@@ -122,7 +122,8 @@ export function startWorker() {
     }
   }, POLL_INTERVAL);
 
-  // Synchronisation des salons, rôles, membres et invitations toutes les 5 minutes
+  // Synchronisation des salons, rôles, membres et invitations toutes les minutes
+  // (les salons/rôles/membres sont déjà mis à jour en temps réel via les événements Discord)
   setInterval(async () => {
     try {
       await syncGuild();
@@ -130,7 +131,7 @@ export function startWorker() {
     } catch {
       /* ignore */
     }
-  }, 5 * 60 * 1000);
+  }, 60 * 1000);
 
   // Auto-fermeture des tickets inactifs (tous les jours à minuit)
   setInterval(async () => {

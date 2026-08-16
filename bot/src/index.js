@@ -7,7 +7,7 @@ import { handleGuildMemberUpdate } from './events/guildMemberUpdate.js';
 import { handleGuildMemberAdd } from './events/guildMemberAdd.js';
 import { handleGuildMemberRemove } from './events/guildMemberRemove.js';
 import { startWorker } from './services/actions.js';
-import { syncGuild } from './services/channels.js';
+import { syncGuild, syncChannels } from './services/channels.js';
 import { syncInvites } from './services/invites.js';
 import { syncBackupsTable, syncBotGuilds } from './services/backup.js';
 import { resumeGiveaways } from './services/giveaways.js';
@@ -70,6 +70,19 @@ client.on(Events.GuildMemberAdd, handleGuildMemberAdd);
 client.on(Events.GuildMemberRemove, handleGuildMemberRemove);
 client.on(Events.GuildCreate, () => syncBotGuilds().catch(() => {}));
 client.on(Events.GuildDelete, () => syncBotGuilds().catch(() => {}));
+
+// Synchronisation en temps réel des salons et rôles (sans attendre le refresh périodique)
+let channelsTimer = null;
+function debounceSyncChannels() {
+  clearTimeout(channelsTimer);
+  channelsTimer = setTimeout(() => syncChannels().catch(() => {}), 300);
+}
+client.on(Events.ChannelCreate, debounceSyncChannels);
+client.on(Events.ChannelDelete, debounceSyncChannels);
+client.on(Events.ChannelUpdate, debounceSyncChannels);
+client.on(Events.RoleCreate, debounceSyncChannels);
+client.on(Events.RoleDelete, debounceSyncChannels);
+client.on(Events.RoleUpdate, debounceSyncChannels);
 
 client.login(config.token).catch((err) => {
   console.error('❌ Impossible de se connecter :', err.message);
