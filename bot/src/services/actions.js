@@ -1,6 +1,7 @@
 import { prisma } from '../prisma.js';
 import { closeTicket, replyToTicket } from './tickets.js';
 import { sendCustomEmbed, sendTicketButtonEmbed } from './embeds.js';
+import { updateProductsEmbed } from './products.js';
 import { syncGuild } from './channels.js';
 
 const POLL_INTERVAL = 5000; // 5 secondes
@@ -22,6 +23,9 @@ async function processAction(action) {
         break;
       case 'CREATE_TICKET_BUTTON':
         result = await sendTicketButtonEmbed(payload.channelId, payload);
+        break;
+      case 'UPDATE_PRODUCTS_EMBED':
+        result = await updateProductsEmbed(payload.channelId || null);
         break;
       default:
         result = { ok: true, skipped: true };

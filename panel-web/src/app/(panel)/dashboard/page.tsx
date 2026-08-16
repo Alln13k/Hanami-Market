@@ -4,11 +4,12 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
-  const [openTickets, transcripts, totalMessages, pendingActions] = await Promise.all([
+  const [openTickets, transcripts, totalMessages, pendingActions, productCount] = await Promise.all([
     prisma.ticket.count({ where: { status: 'OPEN' } }),
     prisma.ticketTranscript.count(),
     prisma.ticketMessage.count(),
     prisma.botAction.count({ where: { status: 'PENDING' } }),
+    prisma.product.count({ where: { isActive: true } }),
   ]);
 
   const recentTickets = await prisma.ticket.findMany({
@@ -38,6 +39,10 @@ export default async function DashboardPage() {
         <div className="card stat">
           <div className="value">{pendingActions}</div>
           <div className="label">Actions bot en attente</div>
+        </div>
+        <div className="card stat">
+          <div className="value">{productCount}</div>
+          <div className="label">Produits affichés</div>
         </div>
       </div>
 

@@ -75,6 +75,19 @@ model CustomCommand {
   updatedAt    DateTime @updatedAt
 }
 
+// Produit affiché dans l'embed public (sans système de paiement)
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String   @default("")
+  price       Decimal  @db.Decimal(10, 2)
+  stock       Int      @default(0)
+  color       String   @default("5865F2")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 // Transcription archivée à la fermeture d'un ticket (le ticket est ensuite supprimé)
 model TicketTranscript {
   id        String   @id @default(cuid())
