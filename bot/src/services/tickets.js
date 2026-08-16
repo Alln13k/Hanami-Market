@@ -1,0 +1,72 @@
+import { prisma, getSetting } from '../prisma.js';
+import { shopEmbed } from '../utils/embeds.js';
+
+// Envoie un message dans le salon admin (logs)
+export async function notifyAdmin(message) {
+  const guild = global.client?.guilds?.cache?.first();
+  const adminChannelId = await getSetting('adminChannelId');
+  if (!guild || !adminChannelId) return;
+  const channel = guild.channels.cache.get(adminChannelId);
+  if (channel) channel.send(message).catch(() => {});
+}
+
+// Stocke un message de ticket (utilisé par l'événement messageCreate)
+export async function storeTicketMessage(ticketId, { authorId, authorName, authorType, content }) {
+  await prisma.ticketMessage.create({
+    data: { ticketId, authorId, authorName, authorType, content },
+  });
+}
+
+// Ferme et supprime proprement un ticket
+export async function closeTicket(channelId, reason = 'Ticket fermé') {
+  const ticket = await prisma.ticket.findUnique({ where: { channelId } });
+  if (!ticket) return { ok: false, error: 'Ticket introuvable' };
+  if (ticket.status === 'CLOSED') return { ok: true };
+
+  const guild = global.client?.guilds?.cache?.first();
+  const channel = guild?.channels?.cache?.get(channelId);
+
+  if (channel) {
+    const embed = shopEmbed('🔒 Ticket fermé', reason);
+    await channel.send({ embeds: [embed] }).catch(() => {});
+  }
+
+  await prisma.ticket.update({
+    where: { id: ticket.id },
+    data: { status: 'CLOSED', closedAt: new Date() },
+  });
+
+  // Suppression différée du salon
+  setTimeout(async () => {
+    try {
+      await channel?.delete();
+    } catch {
+      /* déjà supprimé */
+    }
+  }, 5000);
+
+  return { ok: true };
+}
+
+// Répond à un ticket depuis le panel : envoie le message dans le salon et le stocke
+export async function replyToTicket(ticketId, content, staffName = 'Staff') {
+  const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
+  if (!ticket) return { ok: false, error: 'Ticket introuvable' };
+
+  const guild = global.client?.guilds?.cache?.first();
+  const channel = guild?.channels?.cache?.get(ticket.channelId);
+  if (!channel) return { ok: false, error: 'Salon du ticket introuvable' };
+
+  await channel
+    .send({ embeds: [shopEmbed('💬 Réponse du staff', content)] })
+    .catch(() => {});
+
+  await storeTicketMessage(ticket.id, {
+    authorId: 'panel',
+    authorName: staffName,
+    authorType: 'STAFF',
+    content,
+  });
+
+  return { ok: true };
+}

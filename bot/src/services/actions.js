@@ -1,6 +1,7 @@
 import { prisma } from '../prisma.js';
-import { deliverOrder, closeTicket } from './delivery.js';
-import { getPaymentStatus, PAID_STATUSES } from './payments.js';
+import { closeTicket, replyToTicket } from './tickets.js';
+import { sendCustomEmbed, sendTicketButtonEmbed } from './embeds.js';
+import { syncChannels } from './channels.js';
 
 const POLL_INTERVAL = 5000; // 5 secondes
 
@@ -10,11 +11,17 @@ async function processAction(action) {
     let result;
 
     switch (action.type) {
-      case 'DELIVER_ORDER':
-        result = await deliverOrder(payload.orderId);
-        break;
       case 'CLOSE_TICKET':
         result = await closeTicket(payload.channelId, payload.reason || 'Ticket fermé depuis le panel');
+        break;
+      case 'REPLY_TICKET':
+        result = await replyToTicket(payload.ticketId, payload.content || '', payload.staffName || 'Staff');
+        break;
+      case 'SEND_EMBED':
+        result = await sendCustomEmbed(payload.channelId, payload);
+        break;
+      case 'CREATE_TICKET_BUTTON':
+        result = await sendTicketButtonEmbed(payload.channelId, payload);
         break;
       default:
         result = { ok: true, skipped: true };
@@ -36,25 +43,6 @@ async function processAction(action) {
   }
 }
 
-// Vérifie les paiements Litecoin en attente (secours si le webhook Vercel n'a pas reçu l'IPN)
-async function pollLtcPayments() {
-  const pending = await prisma.order.findMany({
-    where: { status: 'PENDING', paymentMethod: 'LITECOIN', paymentId: { not: null } },
-    select: { id: true, paymentId: true },
-  });
-
-  for (const order of pending) {
-    const status = await getPaymentStatus(order.paymentId);
-    if (status && PAID_STATUSES.includes(status)) {
-      await prisma.order.update({
-        where: { id: order.id },
-        data: { status: 'PAID', paidAt: new Date() },
-      });
-      await deliverOrder(order.id);
-    }
-  }
-}
-
 export function startWorker() {
   setInterval(async () => {
     try {
@@ -71,12 +59,12 @@ export function startWorker() {
     }
   }, POLL_INTERVAL);
 
-  // Vérification des paiements LTC toutes les 45s
+  // Synchronisation des salons toutes les 5 minutes
   setInterval(async () => {
     try {
-      await pollLtcPayments();
+      await syncChannels();
     } catch {
       /* ignore */
     }
-  }, 45000);
+  }, 5 * 60 * 1000);
 }

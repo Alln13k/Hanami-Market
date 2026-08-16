@@ -22,8 +22,8 @@ export async function middleware(req: NextRequest) {
 
   const { pathname } = req.nextUrl;
 
-  // Pages protégées : tout sauf login, api/webhook et pages de suivi
-  if (!ok && pathname !== '/' && !pathname.startsWith('/api/webhook') && !pathname.startsWith('/suivi/')) {
+  // Pages protégées : tout sauf la page de login
+  if (!ok && pathname !== '/') {
     return NextResponse.redirect(new URL('/', req.url));
   }
 

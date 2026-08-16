@@ -13,84 +13,44 @@ model Setting {
   value String
 }
 
-// Un produit vendu dans le shop
-model Product {
-  id           String      @id @default(cuid())
-  name         String
-  description  String      @default("")
-  price        Decimal     @db.Decimal(10, 2)
-  category     String      @default("Produits")
-  imageUrl     String      @default("")
-  color        String      @default("5865F2")
-  isActive     Boolean     @default(true)
-  roleId       String?     @db.VarChar(64) // rôle attribué après achat
-  deliveryNote String      @default("")   // message livré avec le produit
-  stockItems   StockItem[]
-  orders       Order[]
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-}
-
-// Un article en stock (ex: un code, un compte)
-model StockItem {
-  id        String    @id @default(cuid())
-  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productId String
-  data      String    @db.Text
-  isSold    Boolean   @default(false)
-  soldAt    DateTime?
-  order     Order?    @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  orderId   String?
-  createdAt DateTime  @default(now())
-}
-
-// Une commande (status: PENDING, PAID, DELIVERED, FAILED, REFUNDED)
-model Order {
-  id            String      @id @default(cuid())
-  product       Product     @relation(fields: [productId], references: [id])
-  productId     String
-  userId        String      @db.VarChar(64) // Discord ID de l'acheteur
-  userName      String      @default("")
-  status        String      @default("PENDING")
-  paymentMethod String      @default("LITECOIN") // LITECOIN | PAYPAL
-  amount        Decimal     @db.Decimal(10, 2)
-  paymentId     String?     @db.VarChar(128) // id NowPayments
-  payAddress    String?     @db.VarChar(128) // adresse LTC à payer
-  payAmount     Decimal?    @db.Decimal(18, 8)
-  payCurrency   String      @default("LTC")
-  txId          String?     @db.VarChar(128) // transaction / référence PayPal
-  channelId     String?     @db.VarChar(64) // salon ticket lié à l'achat
-  stockItems    StockItem[]
-  delivery      Delivery?
-  createdAt     DateTime    @default(now())
-  paidAt        DateTime?
-  deliveredAt   DateTime?
-}
-
-// Contenu livré à l'acheteur
-model Delivery {
-  id        String   @id @default(cuid())
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  orderId   String   @unique
-  content   String   @db.Text
-  createdAt DateTime @default(now())
-}
-
 // Ticket d'achat / support (type: BUY, SUPPORT, OTHER)
 model Ticket {
-  id        String    @id @default(cuid())
-  channelId String    @unique @db.VarChar(64)
-  userId    String    @db.VarChar(64)
-  userName  String    @default("")
-  type      String    @default("SUPPORT")
-  orderId   String?   @db.VarChar(64)
-  status    String    @default("OPEN") // OPEN | CLOSED
-  createdAt DateTime  @default(now())
+  id        String          @id @default(cuid())
+  channelId String          @unique @db.VarChar(64)
+  userId    String          @db.VarChar(64)
+  userName  String          @default("")
+  type      String          @default("SUPPORT")
+  status    String          @default("OPEN") // OPEN | CLOSED
+  createdAt DateTime        @default(now())
   closedAt  DateTime?
+  messages  TicketMessage[]
+}
+
+// Message d'un ticket (stocké pour l'affichage et la réponse depuis le panel)
+model TicketMessage {
+  id         String   @id @default(cuid())
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId   String
+  authorId   String   @db.VarChar(64)
+  authorName String   @default("")
+  authorType String   @default("USER") // USER | STAFF | BOT
+  content    String   @db.Text
+  createdAt  DateTime @default(now())
+}
+
+// Salon Discord synchronisé pour le choix d'envoi d'embeds
+model GuildChannel {
+  channelId String   @id @db.VarChar(64)
+  name      String
+  type      String   @default("TEXT") // TEXT | VOICE | CATEGORY
+  position  Int      @default(0)
+  parentId  String?  @db.VarChar(64)
+  isText    Boolean  @default(true)
+  updatedAt DateTime @updatedAt
 }
 
 // File d'actions "panel -> bot" : le bot poll cette table et agit sur Discord
-// type: DELIVER_ORDER | CLOSE_TICKET | NOTIFY_ADMIN
+// type: CLOSE_TICKET | REPLY_TICKET | SEND_EMBED | CREATE_TICKET_BUTTON
 model BotAction {
   id         String    @id @default(cuid())
   type       String

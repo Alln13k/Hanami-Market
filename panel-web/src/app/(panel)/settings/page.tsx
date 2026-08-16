@@ -23,8 +23,8 @@ export default async function SettingsPage() {
         <ol className="muted" style={{ lineHeight: 1.8, fontSize: 14 }}>
           <li>Lance <code>npm run deploy</code> côté bot pour déployer les commandes slash.</li>
           <li>Dans Discord, tape <code>/setup</code> dans le salon admin (créera la catégorie Tickets).</li>
-          <li>Tape <code>/ticket</code> dans le salon public pour poser le bouton &quot;Ouvrir un ticket&quot;.</li>
-          <li>Le bouton livraison s&apos;exécute automatiquement quand le paiement est confirmé.</li>
+          <li>Dans le panel, onglet <strong>Embeds</strong> : crée un embed avec bouton &quot;Ouvrir un ticket&quot; dans un salon public.</li>
+          <li>Les salons se synchronisent toutes les 5 minutes avec le bot.</li>
         </ol>
       </div>
     </>
