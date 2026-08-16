@@ -22,6 +22,7 @@ const KEYS = [
   'proofChannelId',
   'productsEmbedChannelId',
   'leaderboardChannelId',
+  'scamChannelId',
 ];
 
 export async function GET() {

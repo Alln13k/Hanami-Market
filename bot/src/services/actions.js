@@ -12,6 +12,7 @@ import { syncGuild } from './channels.js';
 import { dumpBackup, deleteBackup, restoreBackup, syncBackupsTable } from './backup.js';
 import { finishGiveaway, startGiveaway, checkExpiredGiveaways } from './giveaways.js';
 import { updateMemberCounter } from './community.js';
+import { updateScamEmbed } from './scams.js';
 
 const POLL_INTERVAL = 5000; // 5 secondes
 
@@ -35,6 +36,9 @@ async function processAction(action) {
         break;
       case 'UPDATE_PRODUCTS_EMBED':
         result = await updateProductsEmbed(payload.channelId || null);
+        break;
+      case 'UPDATE_SCAM_EMBED':
+        result = await updateScamEmbed(payload.channelId || null);
         break;
       case 'UPDATE_LEADERBOARD_EMBED':
         result = await updateLeaderboardEmbed(payload.channelId || null);

@@ -1,9 +1,6 @@
 import { prisma, getSetting, setSetting } from '../prisma.js';
 import { buildEmbed } from './embeds.js';
-
-function formatPrice(value) {
-  return Number(value).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
-}
+import { buildStockDescription } from './stock.js';
 
 // Met à jour (ou crée) l'embed public listant les produits et leurs stocks
 export async function updateProductsEmbed(channelIdOverride) {
@@ -20,15 +17,7 @@ export async function updateProductsEmbed(channelIdOverride) {
   });
 
   const description = products.length
-    ? products
-        .map(
-          (p, i) =>
-            `**${i + 1}. ${p.name}**${p.salePrice ? ' 🔥' : ''}\n` +
-            `💶 Prix : ${p.salePrice ? `~~${formatPrice(p.price)}~~ **${formatPrice(p.salePrice)}**` : formatPrice(p.price)}\n` +
-            `📦 Stock : **${p.stock}**` +
-            (p.description ? `\n${p.description}` : '')
-        )
-        .join('\n\n')
+    ? buildStockDescription(products)
     : 'Aucun produit disponible pour le moment.';
 
   const embed = buildEmbed({

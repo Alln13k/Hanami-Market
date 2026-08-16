@@ -3,8 +3,7 @@ import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'disc
 import { hexToInt } from '../utils/embeds.js';
 import { randomUUID } from 'node:crypto';
 
-const PRODUCTS_PER_PAGE = 6; // 2 rangées de 3
-const EMOJIS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'];
+const MAX_PER_PAGE = 12; // produits maximum par page
 
 function fmt(v) {
   return Number(v).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
@@ -17,35 +16,69 @@ export async function getProducts() {
   });
 }
 
-export function buildStockEmbed(products, page) {
-  const total = products.length;
-  const inStock = products.filter((p) => p.stock > 0).length;
-  const pages = Math.max(1, Math.ceil(total / PRODUCTS_PER_PAGE));
-  const start = page * PRODUCTS_PER_PAGE;
-  const slice = products.slice(start, start + PRODUCTS_PER_PAGE);
+// Une ligne par article : nom · prix · stock
+function productLine(p) {
+  const price = p.salePrice ? `~~${fmt(p.price)}~~ **${fmt(p.salePrice)}**` : fmt(p.price);
+  return `• **${p.name}**${p.salePrice ? ' 🔥' : ''} · 💶 ${price} · 📦 ${p.stock}`;
+}
 
-  const fields = slice.map((p, i) => {
-    const globalIdx = start + i;
-    const price = p.salePrice ? `~~${fmt(p.price)}~~ **${fmt(p.salePrice)}** 🔥` : fmt(p.price);
-    return {
-      name: `${EMOJIS[globalIdx] || `${globalIdx + 1}.`} ${p.name}`,
-      value: `${price}\n📦 Stock : **${p.stock}** ${p.stock > 0 ? '✅' : '❌'}`,
-      inline: true,
-    };
-  });
+// Regroupe les produits par catégorie (ordre d'apparition, les sans-catégorie à la fin)
+export function buildStockLines(products) {
+  const cats = new Map();
+  for (const p of products) {
+    const key = (p.category || '').trim() || 'Autres';
+    if (!cats.has(key)) cats.set(key, []);
+    cats.get(key).push(p);
+  }
+  return [...cats.entries()].map(([name, prods]) => ({ name, products: prods }));
+}
+
+function renderGroup(g) {
+  return `📂 **${g.name}**\n${g.products.map(productLine).join('\n')}`;
+}
+
+// Description complète (groupée par catégorie) pour l'embed shop public
+export function buildStockDescription(products) {
+  const groups = buildStockLines(products);
+  return groups.map(renderGroup).join('\n\n');
+}
+
+export function buildStockEmbed(products, page) {
+  const groups = buildStockLines(products);
+
+  // Pagination par groupes de catégories
+  const pages = [];
+  let cur = [];
+  let count = 0;
+  for (const g of groups) {
+    if (cur.length && count + g.products.length > MAX_PER_PAGE) {
+      pages.push(cur);
+      cur = [];
+      count = 0;
+    }
+    cur.push(g);
+    count += g.products.length;
+  }
+  if (cur.length) pages.push(cur);
+
+  const total = pages.length || 1;
+  const p = Math.min(Math.max(0, page), total - 1);
+  const inStock = products.filter((x) => x.stock > 0).length;
+
+  const header = `**${products.length}** produit(s) · **${inStock}** en stock · **${products.length - inStock}** épuisé(s)`;
+  const desc = pages.length ? renderGroup(pages[p][0]) : 'Aucun produit disponible pour le moment.';
+  // Ajoute les groupes suivants de la page
+  const body = pages.length ? pages[p].slice(1).map(renderGroup).join('\n\n') : '';
+  const description = pages.length ? `${header}\n\n${[desc, body].filter(Boolean).join('\n\n')}` : header;
 
   const embed = new EmbedBuilder()
     .setColor(hexToInt('f49ecd'))
     .setTitle('📦 Produits & stocks')
-    .setDescription(
-      `**${total}** produit(s) · **${inStock}** en stock · **${total - inStock}** épuisé(s)` +
-        (total === 0 ? '\n\nAucun produit disponible pour le moment.' : '')
-    )
-    .addFields(fields.length ? fields : [{ name: '\u200b', value: '\u200b', inline: true }])
-    .setFooter({ text: `Page ${page + 1}/${pages} · ${new Date().toLocaleString('fr-FR')}` })
+    .setDescription(description)
+    .setFooter({ text: `Page ${p + 1}/${total} · ${new Date().toLocaleString('fr-FR')}` })
     .setTimestamp();
 
-  return { embed, pages, total, inStock };
+  return { embed, page: p, total };
 }
 
 export function buildStockNavRow(uid, page, pages) {
@@ -76,8 +109,8 @@ export async function handleStockNav(interaction) {
   const page = parseInt(pageStr, 10) || 0;
 
   const products = await getProducts();
-  const { embed, pages } = buildStockEmbed(products, page);
-  const row = buildStockNavRow(uid, page, pages);
+  const { embed, page: p, total } = buildStockEmbed(products, page);
+  const row = buildStockNavRow(uid, p, total);
 
   await interaction.update({ embeds: [embed], components: row ? [row] : [] });
 }

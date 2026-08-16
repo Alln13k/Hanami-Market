@@ -22,6 +22,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     data: {
       name,
       description: String(body.description ?? product.description),
+      category: String(body.category ?? product.category),
       price: body.price !== undefined ? Math.max(0, parseFloat(body.price) || 0) : product.price,
       salePrice:
         body.salePrice !== undefined

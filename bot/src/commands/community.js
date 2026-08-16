@@ -89,8 +89,8 @@ export const stock = {
 
   async execute(interaction) {
     const products = await getProducts();
-    const { embed, pages } = buildStockEmbed(products, 0);
-    const row = buildStockNavRow(makeUid(), 0, pages);
+    const { embed, page, total } = buildStockEmbed(products, 0);
+    const row = buildStockNavRow(makeUid(), page, total);
 
     await interaction.reply({ embeds: [embed], components: row ? [row] : [] });
   },

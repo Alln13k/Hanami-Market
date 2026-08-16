@@ -8,6 +8,7 @@ type Product = {
   id: string;
   name: string;
   description: string;
+  category: string;
   price: unknown;
   salePrice: unknown;
   color: string;
@@ -18,6 +19,7 @@ export function ProductEditForm({ product }: { product: Product }) {
   const [form, setForm] = useState({
     name: product.name,
     description: product.description,
+    category: product.category,
     price: String(product.price),
     salePrice: product.salePrice ? String(product.salePrice) : '',
     color: product.color,
@@ -57,6 +59,10 @@ export function ProductEditForm({ product }: { product: Product }) {
         <div>
           <label>Nom du produit</label>
           <input value={form.name} onChange={(e) => set('name', e.target.value)} />
+        </div>
+        <div>
+          <label>Catégorie</label>
+          <input value={form.category} onChange={(e) => set('category', e.target.value)} placeholder="Ex : Boosters, Bots, Comptes..." />
         </div>
         <div>
           <label>Prix (€)</label>

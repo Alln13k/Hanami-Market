@@ -131,6 +131,7 @@ model Product {
   id          String   @id @default(cuid())
   name        String
   description String   @default("")
+  category    String   @default("")
   price       Decimal  @db.Decimal(10, 2)
   salePrice   Decimal? @db.Decimal(10, 2) // prix promo (prix barré sur l'embed)
   stock       Int      @default(0)
@@ -138,6 +139,14 @@ model Product {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// Personne signalée comme scammeur (affichée dans l'embed du salon scam)
+model Scammer {
+  id      String   @id @default(cuid())
+  name    String
+  reason  String   @default("")
+  addedAt DateTime @default(now())
 }
 
 // Sondage interactif (boutons de vote, un vote par membre)

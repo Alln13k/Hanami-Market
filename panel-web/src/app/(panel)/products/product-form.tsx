@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react';
 
 export function ProductForm() {
   const router = useRouter();
-  const [form, setForm] = useState({ name: '', description: '', price: '', salePrice: '', stock: '', color: 'f49ecd' });
+  const [form, setForm] = useState({ name: '', description: '', category: '', price: '', salePrice: '', stock: '', color: 'f49ecd' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -26,7 +26,7 @@ export function ProductForm() {
     });
     setSaving(false);
     if (res.ok) {
-      setForm({ name: '', description: '', price: '', salePrice: '', stock: '', color: 'f49ecd' });
+      setForm({ name: '', description: '', category: '', price: '', salePrice: '', stock: '', color: 'f49ecd' });
       router.refresh();
     } else {
       const data = await res.json().catch(() => ({}));
@@ -40,6 +40,10 @@ export function ProductForm() {
         <div>
           <label>Nom du produit</label>
           <input value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="Ex : Nitro 1 mois" />
+        </div>
+        <div>
+          <label>Catégorie</label>
+          <input value={form.category} onChange={(e) => set('category', e.target.value)} placeholder="Ex : Boosters, Bots, Comptes..." />
         </div>
         <div>
           <label>Prix (€)</label>

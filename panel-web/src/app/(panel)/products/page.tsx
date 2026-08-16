@@ -38,6 +38,7 @@ export default async function ProductsPage() {
             <thead>
               <tr>
                 <th>Produit</th>
+                <th>Catégorie</th>
                 <th>Prix</th>
                 <th>Stock</th>
                 <th>Statut</th>
@@ -51,6 +52,7 @@ export default async function ProductsPage() {
                     {p.name}
                     {p.description && <div className="muted" style={{ fontSize: 12 }}>{p.description}</div>}
                   </td>
+                  <td>{p.category || <span className="muted">—</span>}</td>
                   <td>
                     {p.salePrice ? (
                       <>

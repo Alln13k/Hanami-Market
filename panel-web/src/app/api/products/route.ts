@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
     data: {
       name,
       description: String(body.description || ''),
+      category: String(body.category || ''),
       price,
       salePrice,
       stock,
