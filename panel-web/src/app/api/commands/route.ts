@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
+const TYPES = ['TEXT', 'EMBED', 'DM', 'DM_USER', 'REACT', 'DELETE'];
+
 export async function GET() {
   const commands = await prisma.customCommand.findMany({ orderBy: { createdAt: 'asc' } });
   return NextResponse.json(commands);
@@ -20,13 +22,17 @@ export async function POST(req: NextRequest) {
     data: {
       trigger,
       roleId: String(body.roleId || '') || null,
-      responseType: body.responseType === 'EMBED' ? 'EMBED' : 'TEXT',
+      responseType: TYPES.includes(body.responseType) ? body.responseType : 'TEXT',
       text: String(body.text || ''),
       title: String(body.title || '').slice(0, 256),
       description: String(body.description || ''),
       color: String(body.color || 'f49ecd').replace('#', ''),
       imageUrl: String(body.imageUrl || ''),
       footer: String(body.footer || ''),
+      reactions: String(body.reactions || ''),
+      cooldown: Math.max(0, parseInt(body.cooldown, 10) || 0),
+      deleteTrigger: Boolean(body.deleteTrigger),
+      channelId: String(body.channelId || '') || null,
     },
   });
 

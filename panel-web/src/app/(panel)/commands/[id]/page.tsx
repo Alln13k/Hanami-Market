@@ -7,9 +7,10 @@ import { DeleteCommandButton } from '../delete-button';
 export const dynamic = 'force-dynamic';
 
 export default async function CommandEditPage({ params }: { params: { id: string } }) {
-  const [command, roles] = await Promise.all([
+  const [command, roles, channels] = await Promise.all([
     prisma.customCommand.findUnique({ where: { id: params.id } }),
     prisma.role.findMany({ orderBy: { position: 'desc' } }),
+    prisma.guildChannel.findMany({ where: { isText: true }, orderBy: { position: 'asc' }, take: 200 }),
   ]);
 
   if (!command) notFound();
@@ -17,11 +18,12 @@ export default async function CommandEditPage({ params }: { params: { id: string
   return (
     <>
       <h1 className="page-title">Modifier la commande</h1>
-      <p className="page-sub">Déclencheur <code>{command.trigger}</code></p>
+      <p className="page-sub">Déclencheur <code>{command.trigger}</code> · utilisée <strong>{command.usageCount}</strong> fois</p>
 
-      <div className="card" style={{ maxWidth: 720 }}>
+      <div className="card" style={{ maxWidth: 760 }}>
         <CommandForm
           roles={roles}
+          channels={channels}
           commandId={command.id}
           initial={{
             trigger: command.trigger,
@@ -33,6 +35,11 @@ export default async function CommandEditPage({ params }: { params: { id: string
             color: command.color,
             imageUrl: command.imageUrl,
             footer: command.footer,
+            reactions: command.reactions,
+            cooldown: String(command.cooldown),
+            deleteTrigger: command.deleteTrigger,
+            channelId: command.channelId || '',
+            usageCount: command.usageCount,
           }}
         />
         <div style={{ marginTop: 16 }}>

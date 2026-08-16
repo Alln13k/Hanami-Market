@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Save, Plus, Check } from 'lucide-react';
 
 type Role = { roleId: string; name: string };
+type Channel = { channelId: string; name: string };
 
 type FormData = {
   trigger: string;
@@ -16,6 +17,11 @@ type FormData = {
   color: string;
   imageUrl: string;
   footer: string;
+  reactions: string;
+  cooldown: string;
+  deleteTrigger: boolean;
+  channelId: string;
+  usageCount?: number;
 };
 
 const EMPTY: FormData = {
@@ -28,15 +34,30 @@ const EMPTY: FormData = {
   color: 'f49ecd',
   imageUrl: '',
   footer: '',
+  reactions: '',
+  cooldown: '0',
+  deleteTrigger: false,
+  channelId: '',
+};
+
+const TYPE_LABELS: Record<string, string> = {
+  TEXT: '📝 Texte',
+  EMBED: '🖼️ Embed',
+  DM: '✉️ Message privé (à l\'auteur)',
+  DM_USER: '📨 Message privé (au membre mentionné)',
+  REACT: '🌸 Réactions',
+  DELETE: '🗑️ Supprimer le message',
 };
 
 export function CommandForm({
   roles,
+  channels,
   initial,
   commandId,
   onDone,
 }: {
   roles: Role[];
+  channels: Channel[];
   initial?: Partial<FormData>;
   commandId?: string;
   onDone?: () => void;
@@ -44,9 +65,10 @@ export function CommandForm({
   const router = useRouter();
   const [form, setForm] = useState<FormData>({ ...EMPTY, ...initial });
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
 
-  function set<K extends keyof FormData>(key: K, value: string) {
+  function set<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
@@ -62,6 +84,8 @@ export function CommandForm({
     });
     setSaving(false);
     if (res.ok) {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
       onDone?.();
       router.refresh();
     } else {
@@ -71,6 +95,8 @@ export function CommandForm({
   }
 
   const isEmbed = form.responseType === 'EMBED';
+  const isText = form.responseType === 'TEXT' || form.responseType === 'DM' || form.responseType === 'DM_USER';
+  const isReact = form.responseType === 'REACT';
 
   return (
     <form onSubmit={submit}>
@@ -80,7 +106,7 @@ export function CommandForm({
           <input
             value={form.trigger}
             onChange={(e) => set('trigger', e.target.value)}
-            placeholder="+legit"
+            placeholder="!legit"
             maxLength={80}
           />
         </div>
@@ -97,12 +123,26 @@ export function CommandForm({
         </div>
       </div>
 
-      <div>
-        <label>Type de réponse</label>
-        <select value={form.responseType} onChange={(e) => set('responseType', e.target.value)}>
-          <option value="TEXT">Texte</option>
-          <option value="EMBED">Embed</option>
-        </select>
+      <div className="row">
+        <div>
+          <label>Type de réponse</label>
+          <select value={form.responseType} onChange={(e) => set('responseType', e.target.value)}>
+            {Object.entries(TYPE_LABELS).map(([v, l]) => (
+              <option key={v} value={v}>{l}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Restreindre à un salon (optionnel)</label>
+          <select value={form.channelId} onChange={(e) => set('channelId', e.target.value)}>
+            <option value="">— Partout —</option>
+            {channels.map((c) => (
+              <option key={c.channelId} value={c.channelId}>
+                #{c.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {isEmbed ? (
@@ -132,18 +172,67 @@ export function CommandForm({
             </div>
           </div>
         </>
+      ) : isReact ? (
+        <div>
+          <label>Réactions (emojis séparés par des espaces)</label>
+          <input
+            value={form.reactions}
+            onChange={(e) => set('reactions', e.target.value)}
+            placeholder="🌸 👍 ❤️"
+          />
+          <p className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+            Le bot réagit au message du membre avec ces emojis.
+          </p>
+        </div>
+      ) : isText ? (
+        <div>
+          <label>{form.responseType === 'DM' ? 'Contenu du message privé' : form.responseType === 'DM_USER' ? 'Contenu du message privé envoyé au membre mentionné' : 'Texte de réponse'}</label>
+          <textarea value={form.text} onChange={(e) => set('text', e.target.value)} rows={4} />
+          <p className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+            Variables : {'{user}'} {'{username}'} {'{displayname}'} {'{server}'} {'{channel}'} {'{args}'} {'{arg1}'} {'{arg2}'}… {'{mention}'}
+          </p>
+        </div>
       ) : (
         <div>
-          <label>Texte de réponse</label>
-          <textarea value={form.text} onChange={(e) => set('text', e.target.value)} rows={4} />
+          <p className="muted" style={{ fontSize: 13 }}>
+            🗑️ Le bot supprimera le message contenant le déclencheur (utile pour des commandes silencieuses).
+          </p>
         </div>
       )}
+
+      <div className="row">
+        <div>
+          <label>Cooldown (secondes)</label>
+          <input
+            type="number"
+            min={0}
+            value={form.cooldown}
+            onChange={(e) => set('cooldown', e.target.value)}
+          />
+          <p className="muted" style={{ fontSize: 12, marginTop: 4 }}>0 = aucune limite. Délai entre deux utilisations par membre.</p>
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <label className="checkbox">
+            <input
+              type="checkbox"
+              checked={form.deleteTrigger}
+              onChange={(e) => set('deleteTrigger', e.target.checked)}
+            />
+            Supprimer le message de déclenchement
+          </label>
+        </div>
+      </div>
 
       {error && <p style={{ color: 'var(--red)', margin: 0, fontSize: 14 }}>{error}</p>}
       <div>
         <button type="submit" disabled={saving || !form.trigger.trim()}>
           {saving ? 'Enregistrement...' : commandId ? <><Save size={16} /> Enregistrer</> : <><Plus size={16} /> Créer la commande</>}
         </button>
+        {form.usageCount !== undefined && (
+          <span className="muted" style={{ fontSize: 13, marginLeft: 10 }}>Utilisée {form.usageCount} fois</span>
+        )}
+        {saved && <span className="muted flex" style={{ fontSize: 13, marginLeft: 10 }}><Check size={14} /> Enregistré</span>}
       </div>
     </form>
   );

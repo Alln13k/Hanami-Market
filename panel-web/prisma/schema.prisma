@@ -104,20 +104,25 @@ model Role {
 }
 
 // Commande personnalisée : quand un membre (avec le rôle requis) écrit le déclencheur,
-// le bot répond par un texte ou un embed
+// le bot répond par un texte, un embed, un message privé, des réactions, ou supprime le message
 model CustomCommand {
-  id           String   @id @default(cuid())
-  trigger      String   @unique
-  roleId       String?  @db.VarChar(64)
-  responseType String   @default("TEXT") // TEXT | EMBED
-  text         String   @default("")
-  title        String   @default("")
-  description  String   @default("")
-  color        String   @default("f49ecd")
-  imageUrl     String   @default("")
-  footer       String   @default("")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String   @id @default(cuid())
+  trigger       String   @unique
+  roleId        String?  @db.VarChar(64)
+  responseType  String   @default("TEXT") // TEXT | EMBED | DM | DM_USER | REACT | DELETE
+  text          String   @default("")
+  title         String   @default("")
+  description   String   @default("")
+  color         String   @default("f49ecd")
+  imageUrl      String   @default("")
+  footer        String   @default("")
+  reactions     String   @default("") // emojis séparés par des espaces (mode REACT)
+  cooldown      Int      @default(0) // secondes entre deux utilisations par membre
+  deleteTrigger Boolean  @default(false) // supprime le message de déclenchement
+  channelId     String?  @db.VarChar(64) // restriction à un salon (vide = partout)
+  usageCount    Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 // Produit affiché dans l'embed public (sans système de paiement)

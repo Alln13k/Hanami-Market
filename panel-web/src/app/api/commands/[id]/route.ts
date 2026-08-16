@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 
 type Params = { params: { id: string } };
 
+const TYPES = ['TEXT', 'EMBED', 'DM', 'DM_USER', 'REACT', 'DELETE'];
+
 export async function GET(_req: NextRequest, { params }: Params) {
   const command = await prisma.customCommand.findUnique({ where: { id: params.id } });
   if (!command) return NextResponse.json({ error: 'Commande introuvable' }, { status: 404 });
@@ -27,13 +29,17 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     data: {
       trigger,
       roleId: String(body.roleId ?? (command.roleId || '')) || null,
-      responseType: body.responseType === 'EMBED' ? 'EMBED' : 'TEXT',
+      responseType: TYPES.includes(body.responseType) ? body.responseType : command.responseType,
       text: String(body.text ?? command.text),
       title: String(body.title ?? command.title).slice(0, 256),
       description: String(body.description ?? command.description),
       color: String(body.color ?? command.color).replace('#', ''),
       imageUrl: String(body.imageUrl ?? command.imageUrl),
       footer: String(body.footer ?? command.footer),
+      reactions: String(body.reactions ?? command.reactions),
+      cooldown: body.cooldown !== undefined ? Math.max(0, parseInt(body.cooldown, 10) || 0) : command.cooldown,
+      deleteTrigger: body.deleteTrigger !== undefined ? Boolean(body.deleteTrigger) : command.deleteTrigger,
+      channelId: String(body.channelId ?? (command.channelId || '')) || null,
     },
   });
 
