@@ -9,6 +9,7 @@ import { handleGuildMemberRemove } from './events/guildMemberRemove.js';
 import { startWorker } from './services/actions.js';
 import { syncGuild } from './services/channels.js';
 import { syncInvites } from './services/invites.js';
+import { syncBackupsTable, syncBotGuilds } from './services/backup.js';
 import { commands } from './commands/index.js';
 
 async function deployCommands() {
@@ -53,6 +54,8 @@ client.once(Events.ClientReady, async (c) => {
 
   await syncGuild().catch(() => {});
   await syncInvites().catch(() => {});
+  await syncBackupsTable().catch(() => {});
+  await syncBotGuilds().catch(() => {});
   await deployCommands();
   startWorker();
   console.log('🟢 Worker de tickets démarré.');
@@ -63,6 +66,8 @@ client.on(Events.MessageCreate, handleMessage);
 client.on(Events.GuildMemberUpdate, handleGuildMemberUpdate);
 client.on(Events.GuildMemberAdd, handleGuildMemberAdd);
 client.on(Events.GuildMemberRemove, handleGuildMemberRemove);
+client.on(Events.GuildCreate, () => syncBotGuilds().catch(() => {}));
+client.on(Events.GuildDelete, () => syncBotGuilds().catch(() => {}));
 
 client.login(config.token).catch((err) => {
   console.error('❌ Impossible de se connecter :', err.message);

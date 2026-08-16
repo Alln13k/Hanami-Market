@@ -205,3 +205,14 @@ model Vouch {
   quantity     Int      @default(1)
   createdAt    DateTime @default(now())
 }
+
+// Fichier de sauvegarde stocké sur le serveur du bot (dossier BACKUP à la racine)
+model Backup {
+  id        String   @id @default(cuid())
+  filename  String   @unique
+  size      Int      @default(0)
+  guildId   String?  @db.VarChar(64)
+  guildName String   @default("")
+  note      String   @default("")
+  createdAt DateTime @default(now())
+}

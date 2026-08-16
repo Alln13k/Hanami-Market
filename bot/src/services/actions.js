@@ -9,7 +9,7 @@ import { sendWelcomeTest } from './welcome.js';
 import { banUser, kickUser, unbanUser } from './moderation.js';
 import { syncInvites } from './invites.js';
 import { syncGuild } from './channels.js';
-import { dumpBackup } from './backup.js';
+import { dumpBackup, deleteBackup, restoreBackup, syncBackupsTable } from './backup.js';
 
 const POLL_INTERVAL = 5000; // 5 secondes
 
@@ -71,7 +71,16 @@ async function processAction(action) {
         result = await syncInvites();
         break;
       case 'BACKUP_SERVER':
-        result = await dumpBackup({ keep: parseInt(payload.keep, 10) || 20 });
+        result = await dumpBackup({ note: payload.note || '' });
+        break;
+      case 'DELETE_BACKUP':
+        result = await deleteBackup(payload);
+        break;
+      case 'RESTORE_BACKUP':
+        result = await restoreBackup(payload);
+        break;
+      case 'SYNC_BACKUPS':
+        result = await syncBackupsTable();
         break;
       default:
         result = { ok: true, skipped: true };
