@@ -14,6 +14,10 @@ export async function enqueueAddSpend(userId: string, username: string, amount: 
   await enqueueBotAction('ADD_SPEND', { userId, username, amount });
 }
 
+export async function enqueueRemoveSpend(userId: string, amount: number) {
+  await enqueueBotAction('REMOVE_SPEND', { userId, amount });
+}
+
 export async function enqueueSyncBoosters() {
   await enqueueBotAction('SYNC_BOOSTERS');
 }

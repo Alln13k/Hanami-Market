@@ -1,7 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
-import { Trophy, Pin, Plus, Gift, Sparkles, RotateCcw } from 'lucide-react';
+import { Trophy, Pin, Plus, Minus, Gift, Sparkles, RotateCcw } from 'lucide-react';
 import { AddSpendForm } from './add-spend-form';
+import { RemoveSpendForm } from './remove-spend-form';
 import { PublishLeaderboardForm } from './publish-form';
 import { RewardForm } from './reward-form';
 import { DeleteRewardButton } from './delete-reward-button';
@@ -65,6 +66,14 @@ export default async function LeaderboardPage() {
         <AddSpendForm />
         <p className="muted" style={{ margin: '8px 0 0', fontSize: 12 }}>
           Astuce : utilise aussi la commande slash <code>/addspend</code> directement sur Discord.
+        </p>
+      </div>
+
+      <div className="card" style={{ maxWidth: 760, marginBottom: 24 }}>
+        <h2 style={{ marginTop: 0, fontSize: 18 }}><Minus size={16} /> Retirer une dépense</h2>
+        <RemoveSpendForm entries={entries.map((e) => ({ userId: e.userId, username: e.username || e.userId, totalSpend: Number(e.totalSpend) }))} />
+        <p className="muted" style={{ margin: '8px 0 0', fontSize: 12 }}>
+          Astuce : utilise aussi la commande slash <code>/removespend</code> directement sur Discord (avec l'ID du membre).
         </p>
       </div>
 

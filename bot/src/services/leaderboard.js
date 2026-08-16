@@ -82,6 +82,51 @@ export async function addSpend({ userId, username, amount }) {
   return { ok: true, totalSpend: entry.totalSpend };
 }
 
+// Retire un montant dépensé : baisse le total (min 0), rétrograde le rôle récompense si besoin, rafraîchit l'embed
+export async function removeSpend({ userId, amount }) {
+  if (!userId) return { ok: false, error: 'ID utilisateur requis' };
+  const value = Math.max(0, Number(amount) || 0);
+  if (value <= 0) return { ok: false, error: 'Montant invalide' };
+
+  const entry = await prisma.leaderboardEntry.findUnique({ where: { userId } });
+  if (!entry) return { ok: false, error: 'Ce membre n\'est pas sur le leaderboard.' };
+
+  const newTotal = Math.max(0, Number(entry.totalSpend) - value);
+
+  // Rétrograde : retire le rôle du palier actuel si le nouveau total ne le justifie plus
+  const tierRoleId = await getTierRoleId(newTotal);
+  const oldRoleId = entry.roleId;
+
+  if (oldRoleId && tierRoleId !== oldRoleId) {
+    const guild = global.client?.guilds?.cache?.first();
+    const member = guild ? await guild.members.fetch(userId).catch(() => null) : null;
+    if (member) {
+      if (member.roles.cache.has(oldRoleId)) {
+        await member.roles.remove(oldRoleId).catch(() => {});
+      }
+      if (tierRoleId && !member.roles.cache.has(tierRoleId)) {
+        await member.roles.add(tierRoleId).catch(() => {});
+      }
+    }
+  }
+
+  await prisma.leaderboardEntry.update({
+    where: { userId },
+    data: { totalSpend: newTotal, roleId: tierRoleId || null },
+  });
+
+  await updateLeaderboardEmbed().catch(() => {});
+  return { ok: true, totalSpend: newTotal, username: entry.username };
+}
+
+// Retourne l'ID du rôle correspondant au palier le plus haut atteint (seuil <= total)
+async function getTierRoleId(total) {
+  const tiers = await prisma.spendRole.findMany({ orderBy: { threshold: 'desc' } });
+  if (tiers.length === 0) return null;
+  const reached = tiers.find((t) => Number(total) >= Number(t.threshold));
+  return reached ? reached.roleId : null;
+}
+
 // Donne au membre le plus haut palier atteint (seuil <= total)
 export async function checkAndApplyRoles(userId, total) {
   const guild = global.client?.guilds?.cache?.first();

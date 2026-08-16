@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
 import { requireAdmin } from '../utils/perms.js';
-import { addSpend, syncBoosters, updateLeaderboardEmbed } from '../services/leaderboard.js';
+import { addSpend, removeSpend, syncBoosters, updateLeaderboardEmbed } from '../services/leaderboard.js';
 
 export const addspend = {
   data: new SlashCommandBuilder()
@@ -28,6 +28,39 @@ export const addspend = {
       .setDescription(
         `💸 **${username}** vient de dépenser **${amount.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}**\n` +
           `Total sur le leaderboard : **${Number(result.totalSpend).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}**`
+      )
+      .setFooter({ text: 'Leaderboard mis à jour' });
+
+    await interaction.reply({ embeds: [embed] });
+    await updateLeaderboardEmbed().catch(() => {});
+  },
+};
+
+export const removespend = {
+  data: new SlashCommandBuilder()
+    .setName('removespend')
+    .setDescription('Retire des euros à un membre du leaderboard (via son ID Discord)')
+    .addStringOption((o) => o.setName('user_id').setDescription('ID Discord du membre, ex : 123456789012345678').setRequired(true))
+    .addNumberOption((o) => o.setName('amount').setDescription('Montant à retirer en euros, ex : 5').setRequired(true)),
+
+  async execute(interaction) {
+    if (!requireAdmin(interaction)) return;
+
+    const userId = interaction.options.getString('user_id', true).trim();
+    const amount = interaction.options.getNumber('amount', true);
+    const amountAbs = Math.abs(amount);
+
+    const result = await removeSpend({ userId, amount: amountAbs });
+
+    if (!result.ok) {
+      return interaction.reply({ content: `❌ ${result.error}`, ephemeral: true });
+    }
+
+    const embed = new EmbedBuilder()
+      .setColor(0xf49ecd)
+      .setDescription(
+        `💸 **${result.username || userId}** — **${amountAbs.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}** retiré(e)s du leaderboard\n` +
+          `Total : **${Number(result.totalSpend).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}**`
       )
       .setFooter({ text: 'Leaderboard mis à jour' });
 

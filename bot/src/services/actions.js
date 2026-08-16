@@ -2,7 +2,7 @@ import { prisma, getSetting } from '../prisma.js';
 import { closeTicket, replyToTicket } from './tickets.js';
 import { sendCustomEmbed, sendTicketButtonEmbed } from './embeds.js';
 import { updateProductsEmbed } from './products.js';
-import { updateLeaderboardEmbed, addSpend, syncBoosters, syncAllRoles } from './leaderboard.js';
+import { updateLeaderboardEmbed, addSpend, removeSpend, syncBoosters, syncAllRoles } from './leaderboard.js';
 import { sendProof } from './proofs.js';
 import { sendVouchTutorial, deleteVouch } from './vouch.js';
 import { sendWelcomeTest } from './welcome.js';
@@ -40,6 +40,9 @@ async function processAction(action) {
         break;
       case 'ADD_SPEND':
         result = await addSpend(payload);
+        break;
+      case 'REMOVE_SPEND':
+        result = await removeSpend(payload);
         break;
       case 'SYNC_BOOSTERS':
         result = await syncBoosters();
