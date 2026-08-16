@@ -1,4 +1,4 @@
-import { prisma } from '../prisma.js';
+import { prisma, getSetting } from '../prisma.js';
 import { closeTicket, replyToTicket } from './tickets.js';
 import { sendCustomEmbed, sendTicketButtonEmbed } from './embeds.js';
 import { updateProductsEmbed } from './products.js';
@@ -9,6 +9,7 @@ import { sendWelcomeTest } from './welcome.js';
 import { banUser, kickUser, unbanUser } from './moderation.js';
 import { syncInvites } from './invites.js';
 import { syncGuild } from './channels.js';
+import { dumpBackup } from './backup.js';
 
 const POLL_INTERVAL = 5000; // 5 secondes
 
@@ -69,6 +70,9 @@ async function processAction(action) {
       case 'SYNC_INVITES':
         result = await syncInvites();
         break;
+      case 'BACKUP_SERVER':
+        result = await dumpBackup({ keep: parseInt(payload.keep, 10) || 20 });
+        break;
       default:
         result = { ok: true, skipped: true };
     }
@@ -114,4 +118,26 @@ export function startWorker() {
       /* ignore */
     }
   }, 5 * 60 * 1000);
+
+  // Auto-fermeture des tickets inactifs (tous les jours à minuit)
+  setInterval(async () => {
+    try {
+      await autoCloseInactiveTickets();
+    } catch {
+      /* ignore */
+    }
+  }, 24 * 60 * 60 * 1000);
+}
+
+// Ferme les tickets ouverts sans activité depuis plus de N jours (réglage ticketAutoCloseDays, défaut 7)
+async function autoCloseInactiveTickets() {
+  const days = parseInt(await getSetting('ticketAutoCloseDays', '7'), 10) || 7;
+  if (days <= 0) return;
+  const limit = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const stale = await prisma.ticket.findMany({
+    where: { status: 'OPEN', lastActivityAt: { lt: limit } },
+  });
+  for (const ticket of stale) {
+    await closeTicket(ticket.channelId, `Ticket fermé automatiquement après ${days} jour(s) sans activité`).catch(() => {});
+  }
 }

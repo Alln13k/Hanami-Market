@@ -1,5 +1,7 @@
 import { prisma, getSetting, setSetting } from '../prisma.js';
 import { shopEmbed } from '../utils/embeds.js';
+import { addSpend } from './leaderboard.js';
+import { updateProductsEmbed } from './products.js';
 
 // Envoie (ou renvoie) l'embed du tutoriel dans le salon vouch
 export async function sendVouchTutorial({ channelId }) {
@@ -65,11 +67,34 @@ export async function handleVouch(message) {
     setTimeout(() => confirm.delete().catch(() => {}), 3000);
   }
 
+  // Vente automatique : le montant (prix x quantité) est ajouté au leaderboard de l'auteur,
+  // et le stock du produit correspondant est décrémenté
+  const amount = (parseFloat(price.replace(',', '.')) || 0) * (parseInt(quantity, 10) || 1);
+  const authorName = message.member?.displayName || message.author.username;
+  await addSpend({ userId: message.author.id, username: authorName, amount }).catch(() => {});
+  await decrementProductStock(product.trim(), parseInt(quantity, 10) || 1).catch(() => {});
+
   // Réaction fleur sakura sur le message de vouch
   await message.react('🌸').catch(() => {});
 
   // Supprime le tutoriel et le renvoie juste en dessous de la vouch
   await sendVouchTutorial({ channelId: message.channel.id }).catch(() => {});
+}
+
+// Cherche un produit par nom (correspondance exacte puis partielle) et décrémente son stock
+export async function decrementProductStock(productName, quantity) {
+  const products = await prisma.product.findMany({ where: { isActive: true } });
+  const norm = productName.toLowerCase();
+  const product =
+    products.find((p) => p.name.toLowerCase() === norm) ||
+    products.find((p) => p.name.toLowerCase().includes(norm)) ||
+    products.find((p) => norm.includes(p.name.toLowerCase()));
+  if (!product) return { ok: true, skipped: true };
+
+  const newStock = Math.max(0, (product.stock || 0) - quantity);
+  await prisma.product.update({ where: { id: product.id }, data: { stock: newStock } });
+  await updateProductsEmbed().catch(() => {});
+  return { ok: true, product: product.name, stock: newStock };
 }
 
 // Supprime le message de vouch sur Discord (appelé depuis le panel)

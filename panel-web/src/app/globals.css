@@ -101,6 +101,10 @@ a { color: inherit; text-decoration: none; }
 }
 
 .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 24px; }
+.grid-2 { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; margin-bottom: 24px; }
+
+.bar-track { height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.06); overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--primary), #ff9ad5); }
 .stat .value { font-size: 26px; font-weight: 800; }
 .stat .label { color: var(--muted); font-size: 13px; margin-top: 4px; }
 
@@ -155,6 +159,8 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-secondary { background: var(--panel-2); border: 1px solid var(--border); color: var(--text); }
 .btn-green { background: var(--green); color: white; }
 .btn-red { background: var(--red); color: white; }
+.spin { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .btn-small { padding: 6px 12px; font-size: 12px; }
 
 /* Login */

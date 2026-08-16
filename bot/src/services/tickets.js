@@ -1,5 +1,6 @@
 import { prisma, getSetting } from '../prisma.js';
 import { shopEmbed } from '../utils/embeds.js';
+import { AttachmentBuilder } from 'discord.js';
 
 // Envoie un message dans le salon admin (logs)
 export async function notifyAdmin(message) {
@@ -15,6 +16,7 @@ export async function storeTicketMessage(ticketId, { authorId, authorName, avata
   await prisma.ticketMessage.create({
     data: { ticketId, authorId, authorName, avatarUrl, authorType, content },
   });
+  await prisma.ticket.update({ where: { id: ticketId }, data: { lastActivityAt: new Date() } }).catch(() => {});
 }
 
 // Ferme, archive la transcription puis supprime proprement un ticket
@@ -48,7 +50,7 @@ export async function closeTicket(channelId, reason = 'Ticket fermé') {
 
   // Archive la transcription puis supprime le ticket et ses messages
   try {
-    await prisma.ticketTranscript.create({
+    const transcript = await prisma.ticketTranscript.create({
       data: {
         channelId: ticket.channelId,
         userId: ticket.userId,
@@ -60,6 +62,19 @@ export async function closeTicket(channelId, reason = 'Ticket fermé') {
       },
     });
     await prisma.ticket.delete({ where: { id: ticket.id } });
+
+    // Envoie la transcription dans le salon de logs si configuré
+    const logsChannelId = await getSetting('ticketLogsChannelId');
+    if (logsChannelId) {
+      const logsChannel = guild?.channels?.cache?.get(logsChannelId);
+      if (logsChannel) {
+        const file = new AttachmentBuilder(Buffer.from(transcript.content, 'utf-8'), {
+          name: `ticket-${transcript.type.toLowerCase()}-${transcript.userName}-${Date.now()}.txt`,
+        });
+        const embed = shopEmbed('🎫 Transcription archivée', `Ticket **${ticket.type}** de **${ticket.userName}** fermé.`, 'f49ecd');
+        await logsChannel.send({ embeds: [embed], files: [file] }).catch(() => {});
+      }
+    }
   } catch (err) {
     return { ok: false, error: String(err?.message || err) };
   }

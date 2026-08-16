@@ -4,10 +4,24 @@ import { SettingsForm } from './settings-form';
 export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
-  const keys = ['guildId', 'ticketCategoryId', 'adminChannelId', 'adminRoleId', 'panelUrl'];
+  const keys = [
+    'guildId',
+    'ticketCategoryId',
+    'adminChannelId',
+    'adminRoleId',
+    'panelUrl',
+    'ticketLogsChannelId',
+    'ticketAutoCloseDays',
+  ];
   const settings = await prisma.setting.findMany({ where: { key: { in: keys } } });
   const obj: Record<string, string> = {};
   for (const s of settings) obj[s.key] = s.value;
+
+  const channels = await prisma.guildChannel.findMany({
+    where: { isText: true },
+    orderBy: { position: 'asc' },
+    take: 200,
+  });
 
   return (
     <>
@@ -15,7 +29,7 @@ export default async function SettingsPage() {
       <p className="page-sub">Configurations synchronisées entre le bot et le panel</p>
 
       <div className="card" style={{ maxWidth: 640 }}>
-        <SettingsForm initial={obj} />
+        <SettingsForm initial={obj} channels={channels} />
       </div>
 
       <div className="card" style={{ maxWidth: 640, marginTop: 24 }}>

@@ -20,10 +20,11 @@ model Ticket {
   userId    String          @db.VarChar(64)
   userName  String          @default("")
   type      String          @default("SUPPORT")
-  status    String          @default("OPEN") // OPEN | CLOSED
-  createdAt DateTime        @default(now())
-  closedAt  DateTime?
-  messages  TicketMessage[]
+  status         String          @default("OPEN") // OPEN | CLOSED
+  createdAt      DateTime        @default(now())
+  closedAt       DateTime?
+  lastActivityAt DateTime        @default(now())
+  messages       TicketMessage[]
 }
 
 // Message d'un ticket (stocké pour l'affichage et la réponse depuis le panel)
