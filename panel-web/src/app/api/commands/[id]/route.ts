@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { normalizeSteps } from '../route';
+import { normalizeSteps } from '@/lib/commands';
 
 type Params = { params: { id: string } };
 
