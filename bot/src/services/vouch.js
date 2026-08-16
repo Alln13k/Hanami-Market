@@ -37,6 +37,28 @@ export async function handleVouch(message) {
     .match(/^\+vouch\s+<@!?(\d+)>\s+(\d+[\.,]\d+|\d+)\s+(.+?)\s+x(\d+)\s*$/i);
   if (!match) return;
 
+  const [, targetUserId, price, product, quantity] = match;
+
+  const target = message.guild?.members.cache.get(targetUserId);
+  const targetName = target?.displayName || (await message.guild?.members.fetch(targetUserId).catch(() => null))?.displayName || targetUserId;
+
+  // Stocke la vouch pour l'historique du panel
+  await prisma.vouch
+    .create({
+      data: {
+        messageId: message.id,
+        channelId: message.channel.id,
+        userId: message.author.id,
+        userName: message.author.username,
+        targetUserId,
+        targetName,
+        price: price.replace(',', '.'),
+        product,
+        quantity: parseInt(quantity, 10) || 1,
+      },
+    })
+    .catch(() => {});
+
   // Confirmation éphémère : le bot répond puis supprime sa réponse
   const confirm = await message.reply({ content: '✅ Vouch confirmé !' }).catch(() => null);
   if (confirm) {
@@ -48,4 +70,15 @@ export async function handleVouch(message) {
 
   // Supprime le tutoriel et le renvoie juste en dessous de la vouch
   await sendVouchTutorial({ channelId: message.channel.id }).catch(() => {});
+}
+
+// Supprime le message de vouch sur Discord (appelé depuis le panel)
+export async function deleteVouch({ messageId, channelId }) {
+  const guild = global.client?.guilds?.cache?.first();
+  const channel = guild?.channels?.cache?.get(channelId);
+  if (channel) {
+    const msg = await channel.messages.fetch(messageId).catch(() => null);
+    if (msg) await msg.delete().catch(() => {});
+  }
+  return { ok: true };
 }

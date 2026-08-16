@@ -102,7 +102,7 @@ model TicketTranscript {
 }
 
 // File d'actions "panel -> bot" : le bot poll cette table et agit sur Discord
-// type: CLOSE_TICKET | REPLY_TICKET | SEND_EMBED | CREATE_TICKET_BUTTON | UPDATE_PRODUCTS_EMBED | UPDATE_LEADERBOARD_EMBED | ADD_SPEND | SYNC_BOOSTERS | SYNC_ROLES | SEND_PROOF | SEND_VOUCH_TUTORIAL
+// type: CLOSE_TICKET | REPLY_TICKET | SEND_EMBED | CREATE_TICKET_BUTTON | UPDATE_PRODUCTS_EMBED | UPDATE_LEADERBOARD_EMBED | ADD_SPEND | SYNC_BOOSTERS | SYNC_ROLES | SEND_PROOF | SEND_VOUCH_TUTORIAL | DELETE_VOUCH
 model BotAction {
   id         String    @id @default(cuid())
   type       String
@@ -139,4 +139,19 @@ model Proof {
   image     Bytes    @db.LongBlob
   mimeType  String   @default("image/png")
   createdAt DateTime @default(now())
+}
+
+// Vouch postée par un membre (+vouch @membre prix produit x1)
+model Vouch {
+  id           String   @id @default(cuid())
+  messageId    String   @db.VarChar(64)
+  channelId    String   @db.VarChar(64)
+  userId       String   @db.VarChar(64)
+  userName     String   @default("")
+  targetUserId String   @db.VarChar(64)
+  targetName   String   @default("")
+  price        Decimal  @db.Decimal(10, 2)
+  product      String   @default("")
+  quantity     Int      @default(1)
+  createdAt    DateTime @default(now())
 }
