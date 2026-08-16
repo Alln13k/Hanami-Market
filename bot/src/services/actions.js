@@ -10,7 +10,7 @@ import { banUser, kickUser, unbanUser } from './moderation.js';
 import { syncInvites } from './invites.js';
 import { syncGuild } from './channels.js';
 import { dumpBackup, deleteBackup, restoreBackup, syncBackupsTable } from './backup.js';
-import { finishGiveaway, checkExpiredGiveaways } from './giveaways.js';
+import { finishGiveaway, startGiveaway, checkExpiredGiveaways } from './giveaways.js';
 
 const POLL_INTERVAL = 5000; // 5 secondes
 
@@ -89,6 +89,22 @@ async function processAction(action) {
       case 'END_GIVEAWAY':
         result = await finishGiveaway(payload.giveawayId);
         break;
+      case 'START_GIVEAWAY': {
+        const gwChannel = global.client?.channels?.cache?.get(payload.channelId);
+        if (!gwChannel) {
+          result = { ok: false, error: 'Salon introuvable : le bot n\'y a pas accès.' };
+        } else {
+          result = await startGiveaway({
+            channel: gwChannel,
+            title: String(payload.title || '').trim(),
+            prize: String(payload.prize || '').trim(),
+            description: String(payload.description || '').trim(),
+            winners: Math.max(1, parseInt(payload.winners, 10) || 1),
+            durationMinutes: Math.max(1, parseInt(payload.durationMinutes, 10) || 60),
+          });
+        }
+        break;
+      }
       default:
         result = { ok: true, skipped: true };
     }
