@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
   if (!name) return NextResponse.json({ error: 'Nom requis' }, { status: 400 });
 
   const price = Math.max(0, parseFloat(body.price) || 0);
+  const salePrice = body.salePrice !== undefined && body.salePrice !== '' ? Math.max(0, parseFloat(body.salePrice) || 0) : null;
   const stock = Math.max(0, Math.floor(parseInt(body.stock, 10) || 0));
 
   const product = await prisma.product.create({
@@ -22,6 +23,7 @@ export async function POST(req: NextRequest) {
       name,
       description: String(body.description || ''),
       price,
+      salePrice,
       stock,
       color: String(body.color || 'f49ecd').replace('#', ''),
     },

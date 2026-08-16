@@ -132,11 +132,38 @@ model Product {
   name        String
   description String   @default("")
   price       Decimal  @db.Decimal(10, 2)
+  salePrice   Decimal? @db.Decimal(10, 2) // prix promo (prix barré sur l'embed)
   stock       Int      @default(0)
   color       String   @default("f49ecd")
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// Sondage interactif (boutons de vote, un vote par membre)
+model Poll {
+  id        String      @id @default(cuid())
+  channelId String      @db.VarChar(64)
+  messageId String      @db.VarChar(64)
+  question  String
+  options   String      @db.Text // JSON : ["Option 1", "Option 2", ...]
+  endAt     DateTime?
+  status    String      @default("OPEN") // OPEN | CLOSED
+  createdAt DateTime    @default(now())
+  votes     PollVote[]
+}
+
+// Vote d'un membre sur un sondage
+model PollVote {
+  id      String @id @default(cuid())
+  poll    Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  pollId  String
+  userId  String @db.VarChar(64)
+  index   Int
+  weight  Int    @default(1)
+  createdAt DateTime @default(now())
+
+  @@unique([pollId, userId])
 }
 
 // Transcription archivée à la fermeture d'un ticket (le ticket est ensuite supprimé)

@@ -3,7 +3,26 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-const KEYS = ['guildId', 'ticketCategoryId', 'adminChannelId', 'adminRoleId', 'panelUrl'];
+const KEYS = [
+  'guildId',
+  'ticketCategoryId',
+  'adminChannelId',
+  'adminRoleId',
+  'panelUrl',
+  'ticketLogsChannelId',
+  'ticketAutoCloseDays',
+  'autoRoleId',
+  'goodbyeChannelId',
+  'goodbyeMessage',
+  'memberCounterChannelId',
+  'welcomeChannelId',
+  'welcomeTitle',
+  'welcomeDescription',
+  'vouchChannelId',
+  'proofChannelId',
+  'productsEmbedChannelId',
+  'leaderboardChannelId',
+];
 
 export async function GET() {
   const settings = await prisma.setting.findMany({ where: { key: { in: KEYS } } });

@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { Save, Check } from 'lucide-react';
 
 type Channel = { channelId: string; name: string };
+type Role = { roleId: string; name: string };
 
-export function SettingsForm({ initial, channels }: { initial: Record<string, string>; channels: Channel[] }) {
+export function SettingsForm({ initial, channels, roles }: { initial: Record<string, string>; channels: Channel[]; roles: Role[] }) {
   const router = useRouter();
   const [form, setForm] = useState<Record<string, string>>(initial);
   const [saved, setSaved] = useState(false);
@@ -46,10 +47,7 @@ export function SettingsForm({ initial, channels }: { initial: Record<string, st
 
       <div>
         <label>Salon des transcriptions de tickets (logs)</label>
-        <select
-          value={form.ticketLogsChannelId || ''}
-          onChange={(e) => set('ticketLogsChannelId', e.target.value)}
-        >
+        <select value={form.ticketLogsChannelId || ''} onChange={(e) => set('ticketLogsChannelId', e.target.value)}>
           <option value="">— Désactivé —</option>
           {channels.map((c) => (
             <option key={c.channelId} value={c.channelId}>
@@ -69,6 +67,48 @@ export function SettingsForm({ initial, channels }: { initial: Record<string, st
           onChange={(e) => set('ticketAutoCloseDays', e.target.value)}
         />
         <p className="muted" style={{ fontSize: 12, marginTop: 4 }}>0 = désactivé. Les tickets sans message depuis ce nombre de jours sont fermés automatiquement.</p>
+      </div>
+
+      <h3 style={{ fontSize: 15, marginTop: 24, marginBottom: 4 }}>Communauté</h3>
+
+      <div>
+        <label>Rôle automatique à l'arrivée (auto-rôle)</label>
+        <select value={form.autoRoleId || ''} onChange={(e) => set('autoRoleId', e.target.value)}>
+          <option value="">— Aucun —</option>
+          {roles.map((r) => (
+            <option key={r.roleId} value={r.roleId}>@{r.name}</option>
+          ))}
+        </select>
+        <p className="muted" style={{ fontSize: 12, marginTop: 4 }}>Attribué automatiquement à chaque nouveau membre.</p>
+      </div>
+
+      <div>
+        <label>Salon des messages d'adieu</label>
+        <select value={form.goodbyeChannelId || ''} onChange={(e) => set('goodbyeChannelId', e.target.value)}>
+          <option value="">— Désactivé —</option>
+          {channels.map((c) => (
+            <option key={c.channelId} value={c.channelId}>#{c.name}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label>Message d'adieu</label>
+        <input
+          value={form.goodbyeMessage || ''}
+          onChange={(e) => set('goodbyeMessage', e.target.value)}
+          placeholder="Placeholders : {user} {username} {server}"
+        />
+      </div>
+
+      <div>
+        <label>Compteur de membres (salon vocal)</label>
+        <select value={form.memberCounterChannelId || ''} onChange={(e) => set('memberCounterChannelId', e.target.value)}>
+          <option value="">— Désactivé —</option>
+          {channels.map((c) => (
+            <option key={c.channelId} value={c.channelId}>#{c.name}</option>
+          ))}
+        </select>
+        <p className="muted" style={{ fontSize: 12, marginTop: 4 }}>Le bot renomme ce salon vocal chaque minute : « 👥 Membres : X ».</p>
       </div>
 
       <div className="flex">

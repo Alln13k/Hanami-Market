@@ -9,6 +9,7 @@ type Product = {
   name: string;
   description: string;
   price: unknown;
+  salePrice: unknown;
   color: string;
 };
 
@@ -18,6 +19,7 @@ export function ProductEditForm({ product }: { product: Product }) {
     name: product.name,
     description: product.description,
     price: String(product.price),
+    salePrice: product.salePrice ? String(product.salePrice) : '',
     color: product.color,
   });
   const [saving, setSaving] = useState(false);
@@ -59,6 +61,10 @@ export function ProductEditForm({ product }: { product: Product }) {
         <div>
           <label>Prix (€)</label>
           <input type="number" min="0" step="0.01" value={form.price} onChange={(e) => set('price', e.target.value)} />
+        </div>
+        <div>
+          <label>Prix promo 🔥 (vide = pas de promo)</label>
+          <input type="number" min="0" step="0.01" value={form.salePrice} onChange={(e) => set('salePrice', e.target.value)} placeholder="7.99" />
         </div>
       </div>
       <div>

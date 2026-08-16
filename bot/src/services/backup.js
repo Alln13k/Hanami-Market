@@ -115,6 +115,8 @@ export async function dumpBackup({ note } = {}) {
     giveaways,
     giveawayEntries,
     giveawayWinners,
+    polls,
+    pollVotes,
   ] = await Promise.all([
     prisma.setting.findMany(),
     prisma.product.findMany(),
@@ -135,6 +137,8 @@ export async function dumpBackup({ note } = {}) {
     prisma.giveaway.findMany(),
     prisma.giveawayEntry.findMany(),
     prisma.giveawayWinner.findMany(),
+    prisma.poll.findMany(),
+    prisma.pollVote.findMany(),
   ]);
 
   const data = {
@@ -160,6 +164,8 @@ export async function dumpBackup({ note } = {}) {
     giveaways: clean(giveaways),
     giveawayEntries: clean(giveawayEntries),
     giveawayWinners: clean(giveawayWinners),
+    polls: clean(polls),
+    pollVotes: clean(pollVotes),
   };
 
   await mkdir(BACKUP_DIR, { recursive: true });
@@ -317,6 +323,14 @@ export async function importBackupData(data) {
       })),
       skipDuplicates: true,
     }),
+    prisma.poll.createMany({
+      data: (data.polls ?? []).map((p) => ({
+        id: p.id, channelId: p.channelId, messageId: p.messageId, question: p.question,
+        options: p.options ?? '[]', endAt: p.endAt ? toDate(p.endAt) : null,
+        status: p.status ?? 'OPEN', createdAt: toDate(p.createdAt),
+      })),
+      skipDuplicates: true,
+    }),
   ]);
 
   for (const proof of data.proofs ?? []) {
@@ -356,6 +370,13 @@ export async function importBackupData(data) {
     data: (data.giveawayWinners ?? []).map((w) => ({
       id: w.id, giveawayId: w.giveawayId, userId: w.userId, userName: w.userName ?? '',
       avatarUrl: w.avatarUrl ?? '', createdAt: toDate(w.createdAt),
+    })),
+    skipDuplicates: true,
+  });
+
+  await prisma.pollVote.createMany({
+    data: (data.pollVotes ?? []).map((v) => ({
+      id: v.id, pollId: v.pollId, userId: v.userId, index: v.index, weight: v.weight ?? 1, createdAt: toDate(v.createdAt),
     })),
     skipDuplicates: true,
   });

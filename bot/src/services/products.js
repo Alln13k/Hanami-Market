@@ -23,8 +23,8 @@ export async function updateProductsEmbed(channelIdOverride) {
     ? products
         .map(
           (p, i) =>
-            `**${i + 1}. ${p.name}**\n` +
-            `💶 Prix : ${formatPrice(p.price)}\n` +
+            `**${i + 1}. ${p.name}**${p.salePrice ? ' 🔥' : ''}\n` +
+            `💶 Prix : ${p.salePrice ? `~~${formatPrice(p.price)}~~ **${formatPrice(p.salePrice)}**` : formatPrice(p.price)}\n` +
             `📦 Stock : **${p.stock}**` +
             (p.description ? `\n${p.description}` : '')
         )

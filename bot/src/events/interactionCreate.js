@@ -10,6 +10,7 @@ import { prisma, getSetting } from '../prisma.js';
 import { shopEmbed } from '../utils/embeds.js';
 import { closeTicket } from '../services/tickets.js';
 import { toggleJoin, rerollGiveaway } from '../services/giveaways.js';
+import { handleVote } from '../services/polls.js';
 import { commands } from '../commands/index.js';
 
 // Ouverture d'un ticket depuis le bouton
@@ -142,5 +143,6 @@ export async function handleInteraction(interaction) {
       await rerollGiveaway(giveawayId);
       return interaction.reply({ content: '🔁 Nouveau tirage effectué !', ephemeral: true });
     }
+    if (interaction.customId.startsWith('poll_vote_')) return handleVote(interaction);
   }
 }

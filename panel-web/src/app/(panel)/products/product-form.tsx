@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react';
 
 export function ProductForm() {
   const router = useRouter();
-  const [form, setForm] = useState({ name: '', description: '', price: '', stock: '', color: 'f49ecd' });
+  const [form, setForm] = useState({ name: '', description: '', price: '', salePrice: '', stock: '', color: 'f49ecd' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -26,7 +26,7 @@ export function ProductForm() {
     });
     setSaving(false);
     if (res.ok) {
-      setForm({ name: '', description: '', price: '', stock: '', color: 'f49ecd' });
+      setForm({ name: '', description: '', price: '', salePrice: '', stock: '', color: 'f49ecd' });
       router.refresh();
     } else {
       const data = await res.json().catch(() => ({}));
@@ -44,6 +44,10 @@ export function ProductForm() {
         <div>
           <label>Prix (€)</label>
           <input type="number" min="0" step="0.01" value={form.price} onChange={(e) => set('price', e.target.value)} placeholder="9.99" />
+        </div>
+        <div>
+          <label>Prix promo 🔥 (optionnel)</label>
+          <input type="number" min="0" step="0.01" value={form.salePrice} onChange={(e) => set('salePrice', e.target.value)} placeholder="7.99" />
         </div>
         <div>
           <label>Stock initial</label>

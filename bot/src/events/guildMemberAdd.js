@@ -1,8 +1,8 @@
 import { sendWelcome } from '../services/welcome.js';
 import { trackJoin } from '../services/invites.js';
-import { prisma } from '../prisma.js';
+import { prisma, getSetting } from '../prisma.js';
 
-// Quand un membre rejoint le serveur : bienvenue + tracking de l'invitation utilisée + ajout en base
+// Quand un membre rejoint le serveur : bienvenue + tracking de l'invitation utilisée + ajout en base + auto-rôle
 export async function handleGuildMemberAdd(member) {
   await Promise.allSettled([
     sendWelcome(member),
@@ -23,5 +23,11 @@ export async function handleGuildMemberAdd(member) {
         joinedAt: member.joinedAt,
       },
     }),
+    (async () => {
+      const autoRoleId = await getSetting('autoRoleId');
+      if (autoRoleId && member.roles) {
+        await member.roles.add(autoRoleId).catch(() => {});
+      }
+    })(),
   ]);
 }

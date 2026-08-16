@@ -23,6 +23,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       name,
       description: String(body.description ?? product.description),
       price: body.price !== undefined ? Math.max(0, parseFloat(body.price) || 0) : product.price,
+      salePrice:
+        body.salePrice !== undefined
+          ? body.salePrice === '' || body.salePrice === null
+            ? null
+            : Math.max(0, parseFloat(body.salePrice) || 0)
+          : product.salePrice,
       color: String(body.color ?? product.color).replace('#', ''),
       isActive: body.isActive !== undefined ? Boolean(body.isActive) : product.isActive,
     },

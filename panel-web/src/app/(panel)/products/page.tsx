@@ -51,7 +51,17 @@ export default async function ProductsPage() {
                     {p.name}
                     {p.description && <div className="muted" style={{ fontSize: 12 }}>{p.description}</div>}
                   </td>
-                  <td>{Number(p.price).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</td>
+                  <td>
+                    {p.salePrice ? (
+                      <>
+                        {Number(p.salePrice).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}{' '}
+                        <s className="muted" style={{ fontSize: 12 }}>{Number(p.price).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</s>{' '}
+                        <span className="badge badge-green">🔥 -{Math.round((1 - Number(p.salePrice) / Number(p.price)) * 100)}%</span>
+                      </>
+                    ) : (
+                      Number(p.price).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })
+                    )}
+                  </td>
                   <td><strong>{p.stock}</strong></td>
                   <td><span className={`badge ${p.isActive ? 'OPEN' : 'CLOSED'}`}>{p.isActive ? 'Affiché' : 'Masqué'}</span></td>
                   <td className="flex">

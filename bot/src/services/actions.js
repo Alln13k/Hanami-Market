@@ -11,6 +11,7 @@ import { syncInvites } from './invites.js';
 import { syncGuild } from './channels.js';
 import { dumpBackup, deleteBackup, restoreBackup, syncBackupsTable } from './backup.js';
 import { finishGiveaway, startGiveaway, checkExpiredGiveaways } from './giveaways.js';
+import { updateMemberCounter } from './community.js';
 
 const POLL_INTERVAL = 5000; // 5 secondes
 
@@ -156,6 +157,7 @@ export function startWorker() {
     try {
       await syncGuild();
       await syncInvites();
+      await updateMemberCounter();
     } catch {
       /* ignore */
     }

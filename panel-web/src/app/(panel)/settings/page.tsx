@@ -12,16 +12,23 @@ export default async function SettingsPage() {
     'panelUrl',
     'ticketLogsChannelId',
     'ticketAutoCloseDays',
+    'autoRoleId',
+    'goodbyeChannelId',
+    'goodbyeMessage',
+    'memberCounterChannelId',
   ];
   const settings = await prisma.setting.findMany({ where: { key: { in: keys } } });
   const obj: Record<string, string> = {};
   for (const s of settings) obj[s.key] = s.value;
 
-  const channels = await prisma.guildChannel.findMany({
-    where: { isText: true },
-    orderBy: { position: 'asc' },
-    take: 200,
-  });
+  const [channels, roles] = await Promise.all([
+    prisma.guildChannel.findMany({
+      where: { isText: true },
+      orderBy: { position: 'asc' },
+      take: 200,
+    }),
+    prisma.role.findMany({ orderBy: { position: 'desc' } }),
+  ]);
 
   return (
     <>
@@ -29,7 +36,7 @@ export default async function SettingsPage() {
       <p className="page-sub">Configurations synchronisées entre le bot et le panel</p>
 
       <div className="card" style={{ maxWidth: 640 }}>
-        <SettingsForm initial={obj} channels={channels} />
+        <SettingsForm initial={obj} channels={channels} roles={roles} />
       </div>
 
       <div className="card" style={{ maxWidth: 640, marginTop: 24 }}>
