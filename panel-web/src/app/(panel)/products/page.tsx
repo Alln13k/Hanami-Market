@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
+import { Pin, Plus } from 'lucide-react';
 import { ProductForm } from './product-form';
 import { ToggleButton } from './toggle-button';
 import { DeleteProductButton } from './delete-button';
@@ -19,12 +20,12 @@ export default async function ProductsPage() {
       <p className="page-sub">L'embed public se met à jour automatiquement à chaque changement.</p>
 
       <div className="card" style={{ maxWidth: 720, marginBottom: 24 }}>
-        <h2 style={{ marginTop: 0, fontSize: 18 }}>📌 Embed public</h2>
+        <h2 style={{ marginTop: 0, fontSize: 18 }}><Pin size={16} /> Embed public</h2>
         <PublishEmbedForm channels={channels} />
       </div>
 
       <div className="card" style={{ maxWidth: 720, marginBottom: 24 }}>
-        <h2 style={{ marginTop: 0, fontSize: 18 }}>➕ Nouveau produit</h2>
+        <h2 style={{ marginTop: 0, fontSize: 18 }}><Plus size={16} /> Nouveau produit</h2>
         <ProductForm />
       </div>
 

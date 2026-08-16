@@ -79,11 +79,16 @@ a { color: inherit; text-decoration: none; }
   color: var(--muted);
   font-weight: 600;
   font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
+.sidebar nav a .nav-icon { flex-shrink: 0; }
 .sidebar nav a:hover, .sidebar nav a.active {
   background: rgba(244,158,205,.12);
   color: var(--primary);
 }
+.sidebar nav a.active .nav-icon { color: var(--primary); }
 
 .content { flex: 1; padding: 28px 32px; }
 
@@ -140,6 +145,10 @@ button, .btn {
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 button:hover { filter: brightness(1.08); }
 button:disabled { opacity: 0.5; cursor: not-allowed; }

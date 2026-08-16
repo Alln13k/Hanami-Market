@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { MessageSquare, Check } from 'lucide-react';
 
 type Channel = { channelId: string; name: string };
 
@@ -155,9 +156,9 @@ export function CustomEmbedForm({ channels }: { channels: Channel[] }) {
       {error && <p style={{ color: 'var(--red)', margin: 0, fontSize: 14 }}>{error}</p>}
       <div>
         <button type="submit" disabled={sending || !channelId}>
-          {sending ? 'Envoi...' : '📨 Envoyer'}
+          {sending ? 'Envoi...' : <><MessageSquare size={16} /> Envoyer</>}
         </button>
-        {done && <span className="muted" style={{ fontSize: 13, marginLeft: 10 }}>✅ Envoyé</span>}
+        {done && <span className="muted flex" style={{ fontSize: 13, marginLeft: 10 }}><Check size={14} /> Envoyé</span>}
       </div>
     </form>
   );

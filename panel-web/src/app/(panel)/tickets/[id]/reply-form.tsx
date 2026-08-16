@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { MessageSquare } from 'lucide-react';
 
 export function ReplyForm({ ticketId }: { ticketId: string }) {
   const router = useRouter();
@@ -41,7 +42,7 @@ export function ReplyForm({ ticketId }: { ticketId: string }) {
       {error && <p style={{ color: 'var(--red)', margin: 0, fontSize: 14 }}>{error}</p>}
       <div>
         <button type="submit" disabled={sending || !content.trim()}>
-          {sending ? 'Envoi...' : '📨 Envoyer'}
+          {sending ? 'Envoi...' : <><MessageSquare size={16} /> Envoyer</>}
         </button>
       </div>
     </form>

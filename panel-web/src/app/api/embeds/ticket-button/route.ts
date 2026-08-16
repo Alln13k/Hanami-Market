@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
         color: String(body.color || 'f49ecd'),
         imageUrl: String(body.imageUrl || ''),
         footer: String(body.footer || ''),
-        buttonLabel: String(body.buttonLabel || '🎫 Ouvrir un ticket').slice(0, 80),
+        buttonLabel: String(body.buttonLabel || 'Ouvrir un ticket').slice(0, 80),
       }),
     },
   });

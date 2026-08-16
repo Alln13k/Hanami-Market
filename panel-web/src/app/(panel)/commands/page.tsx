@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
+import { Plus, FileText, MessageCircle } from 'lucide-react';
 import { CommandForm } from './command-form';
 import { DeleteCommandButton } from './delete-button';
 
@@ -22,7 +23,7 @@ export default async function CommandsPage() {
       <p className="page-sub">Quand un membre (avec le rôle requis) écrit le déclencheur, le bot répond.</p>
 
       <div className="card" style={{ maxWidth: 720, marginBottom: 24 }}>
-        <h2 style={{ marginTop: 0, fontSize: 18 }}>➕ Nouvelle commande</h2>
+        <h2 style={{ marginTop: 0, fontSize: 18 }}><Plus size={16} /> Nouvelle commande</h2>
         <CommandForm roles={roles} />
       </div>
 
@@ -45,7 +46,7 @@ export default async function CommandsPage() {
                 <tr key={c.id}>
                   <td><code>{c.trigger}</code></td>
                   <td>{roleName(c.roleId)}</td>
-                  <td>{c.responseType === 'EMBED' ? `📇 Embed — ${c.title || 'sans titre'}` : `💬 ${c.text || ''}`}</td>
+                  <td>{c.responseType === 'EMBED' ? <span className="flex"><FileText size={14} /> Embed — {c.title || 'sans titre'}</span> : <span className="flex"><MessageCircle size={14} /> {c.text || ''}</span>}</td>
                   <td className="flex">
                     <Link href={`/commands/${c.id}`} className="btn btn-secondary btn-small">Modifier</Link>
                     <DeleteCommandButton id={c.id} trigger={c.trigger} />

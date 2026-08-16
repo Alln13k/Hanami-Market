@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { MessageSquare, Ticket } from 'lucide-react';
 import { CustomEmbedForm } from './custom-embed-form';
 import { TicketButtonForm } from './ticket-button-form';
 
@@ -25,12 +26,12 @@ export default async function EmbedsPage() {
       ) : (
         <>
           <div className="card" style={{ maxWidth: 720, marginBottom: 24 }}>
-            <h2 style={{ marginTop: 0, fontSize: 18 }}>📨 Envoyer un embed custom</h2>
+            <h2 style={{ marginTop: 0, fontSize: 18 }}><MessageSquare size={16} /> Envoyer un embed custom</h2>
             <CustomEmbedForm channels={channels} />
           </div>
 
           <div className="card" style={{ maxWidth: 720 }}>
-            <h2 style={{ marginTop: 0, fontSize: 18 }}>🎫 Créer un embed avec bouton &quot;Ouvrir un ticket&quot;</h2>
+            <h2 style={{ marginTop: 0, fontSize: 18 }}><Ticket size={16} /> Créer un embed avec bouton &quot;Ouvrir un ticket&quot;</h2>
             <TicketButtonForm channels={channels} />
           </div>
         </>

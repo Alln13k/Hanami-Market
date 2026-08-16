@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Save, Check } from 'lucide-react';
 
 export function StockForm({ productId, current }: { productId: string; current: number }) {
   const router = useRouter();
@@ -44,9 +45,9 @@ export function StockForm({ productId, current }: { productId: string; current: 
           style={{ maxWidth: 160 }}
         />
         <button type="submit" disabled={saving} className="btn-green">
-          {saving ? 'Mise à jour...' : '💾 Définir le stock'}
+          {saving ? 'Mise à jour...' : <><Save size={16} /> Définir le stock</>}
         </button>
-        {done && <span className="muted" style={{ fontSize: 13 }}>✅ Enregistré</span>}
+        {done && <span className="muted flex" style={{ fontSize: 13 }}><Check size={14} /> Enregistré</span>}
       </div>
       {error && <p style={{ color: 'var(--red)', margin: 0, fontSize: 14 }}>{error}</p>}
     </form>

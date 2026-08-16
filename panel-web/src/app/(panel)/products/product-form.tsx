@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Plus } from 'lucide-react';
 
 export function ProductForm() {
   const router = useRouter();
@@ -60,7 +61,7 @@ export function ProductForm() {
       {error && <p style={{ color: 'var(--red)', margin: 0, fontSize: 14 }}>{error}</p>}
       <div>
         <button type="submit" disabled={saving || !form.name.trim()}>
-          {saving ? 'Création...' : '➕ Créer le produit'}
+          {saving ? 'Création...' : <><Plus size={16} /> Créer le produit</>}
         </button>
       </div>
     </form>

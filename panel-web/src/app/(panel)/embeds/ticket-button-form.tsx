@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Ticket, Check } from 'lucide-react';
 
 type Channel = { channelId: string; name: string };
 
@@ -12,7 +13,7 @@ export function TicketButtonForm({ channels }: { channels: Channel[] }) {
   const [description, setDescription] = useState('');
   const [color, setColor] = useState('f49ecd');
   const [imageUrl, setImageUrl] = useState('');
-  const [buttonLabel, setButtonLabel] = useState('🎫 Ouvrir un ticket');
+  const [buttonLabel, setButtonLabel] = useState('Ouvrir un ticket');
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
@@ -83,9 +84,9 @@ export function TicketButtonForm({ channels }: { channels: Channel[] }) {
       {error && <p style={{ color: 'var(--red)', margin: 0, fontSize: 14 }}>{error}</p>}
       <div>
         <button type="submit" disabled={sending || !channelId}>
-          {sending ? 'Envoi...' : '🎫 Publier'}
+          {sending ? 'Envoi...' : <><Ticket size={16} /> Publier</>}
         </button>
-        {done && <span className="muted" style={{ fontSize: 13, marginLeft: 10 }}>✅ Envoyé</span>}
+        {done && <span className="muted flex" style={{ fontSize: 13, marginLeft: 10 }}><Check size={14} /> Envoyé</span>}
       </div>
     </form>
   );

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Save, Check } from 'lucide-react';
 
 type Product = {
   id: string;
@@ -71,9 +72,9 @@ export function ProductEditForm({ product }: { product: Product }) {
       {error && <p style={{ color: 'var(--red)', margin: 0, fontSize: 14 }}>{error}</p>}
       <div>
         <button type="submit" disabled={saving || !form.name.trim()}>
-          {saving ? 'Enregistrement...' : '💾 Enregistrer'}
+          {saving ? 'Enregistrement...' : <><Save size={16} /> Enregistrer</>}
         </button>
-        {done && <span className="muted" style={{ fontSize: 13, marginLeft: 10 }}>✅ Enregistré</span>}
+        {done && <span className="muted flex" style={{ fontSize: 13, marginLeft: 10 }}><Check size={14} /> Enregistré</span>}
       </div>
     </form>
   );

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Save, Plus, Check } from 'lucide-react';
 
 type Role = { roleId: string; name: string };
 
@@ -141,7 +142,7 @@ export function CommandForm({
       {error && <p style={{ color: 'var(--red)', margin: 0, fontSize: 14 }}>{error}</p>}
       <div>
         <button type="submit" disabled={saving || !form.trigger.trim()}>
-          {saving ? 'Enregistrement...' : commandId ? '💾 Enregistrer' : '➕ Créer la commande'}
+          {saving ? 'Enregistrement...' : commandId ? <><Save size={16} /> Enregistrer</> : <><Plus size={16} /> Créer la commande</>}
         </button>
       </div>
     </form>

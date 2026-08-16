@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { Lock } from 'lucide-react';
 
 export function CloseTicketButton({ id }: { id: string }) {
   const router = useRouter();
@@ -10,8 +11,8 @@ export function CloseTicketButton({ id }: { id: string }) {
     router.refresh();
   }
   return (
-    <button className="btn-red btn-small" onClick={close}>
-      🔒 Fermer
+    <button className="btn-red btn-small flex" onClick={close}>
+      <Lock size={14} /> Fermer
     </button>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Save, Check } from 'lucide-react';
 
 export function SettingsForm({ initial }: { initial: Record<string, string> }) {
   const router = useRouter();
@@ -41,8 +42,8 @@ export function SettingsForm({ initial }: { initial: Record<string, string> }) {
         </div>
       ))}
       <div className="flex">
-        <button type="submit">💾 Enregistrer</button>
-        {saved && <span className="muted" style={{ fontSize: 13 }}>✅ Enregistré</span>}
+        <button type="submit"><Save size={16} /> Enregistrer</button>
+        {saved && <span className="muted flex" style={{ fontSize: 13 }}><Check size={14} /> Enregistré</span>}
       </div>
     </form>
   );

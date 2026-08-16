@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Flower } from 'lucide-react';
 
 export default function LoginPage() {
   const [password, setPassword] = useState('');
@@ -32,7 +33,10 @@ export default function LoginPage() {
       <div className="login-box">
         <img className="login-logo" src="https://i.imgur.com/s2BQbyJ.jpeg" alt="Logo Hanami" />
         <h1 className="logo-text" style={{ marginTop: 0 }}>Hanami Market</h1>
-        <p className="muted" style={{ marginTop: -8 }}>🌸 Connexion à l'administration</p>
+        <p className="muted" style={{ marginTop: -8, display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
+          <Flower size={14} />
+          Connexion à l'administration
+        </p>
         <form onSubmit={onSubmit}>
           <label htmlFor="password">Mot de passe</label>
           <input
