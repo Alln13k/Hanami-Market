@@ -11,6 +11,7 @@ import { shopEmbed } from '../utils/embeds.js';
 import { closeTicket } from '../services/tickets.js';
 import { toggleJoin, rerollGiveaway } from '../services/giveaways.js';
 import { handleVote } from '../services/polls.js';
+import { handleStockNav } from '../services/stock.js';
 import { commands } from '../commands/index.js';
 
 // Ouverture d'un ticket depuis le bouton
@@ -144,5 +145,6 @@ export async function handleInteraction(interaction) {
       return interaction.reply({ content: '🔁 Nouveau tirage effectué !', ephemeral: true });
     }
     if (interaction.customId.startsWith('poll_vote_')) return handleVote(interaction);
+    if (interaction.customId.startsWith('stock_nav_')) return handleStockNav(interaction);
   }
 }

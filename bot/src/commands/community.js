@@ -2,6 +2,7 @@ import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
 import { requireAdmin } from '../utils/perms.js';
 import { shopEmbed, hexToInt } from '../utils/embeds.js';
 import { createPoll } from '../services/polls.js';
+import { getProducts, buildStockEmbed, buildStockNavRow, makeUid } from '../services/stock.js';
 import { prisma } from '../prisma.js';
 
 const MAX_OPTIONS = 9;
@@ -87,31 +88,10 @@ export const stock = {
     .setDescription('Affiche les produits disponibles et leurs stocks'),
 
   async execute(interaction) {
-    const products = await prisma.product.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: 'asc' },
-    });
+    const products = await getProducts();
+    const { embed, pages } = buildStockEmbed(products, 0);
+    const row = buildStockNavRow(makeUid(), 0, pages);
 
-    const formatPrice = (v) => Number(v).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
-
-    const lines = products.length
-      ? products
-          .map(
-            (p, i) =>
-              `**${i + 1}. ${p.name}**${p.salePrice ? ' 🔥' : ''}\n` +
-              `💶 Prix : ${p.salePrice ? `~~${formatPrice(p.price)}~~ **${formatPrice(p.salePrice)}**` : formatPrice(p.price)}\n` +
-              `📦 Stock : **${p.stock}**`
-          )
-          .join('\n\n')
-      : 'Aucun produit disponible pour le moment.';
-
-    const embed = new EmbedBuilder()
-      .setColor(hexToInt('f49ecd'))
-      .setTitle('📦 Produits & stocks')
-      .setDescription(lines)
-      .setFooter({ text: `Mis à jour le ${new Date().toLocaleString('fr-FR')}` })
-      .setTimestamp();
-
-    await interaction.reply({ embeds: [embed] });
+    await interaction.reply({ embeds: [embed], components: row ? [row] : [] });
   },
 };
