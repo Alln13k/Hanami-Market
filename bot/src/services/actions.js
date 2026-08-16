@@ -5,6 +5,7 @@ import { updateProductsEmbed } from './products.js';
 import { updateLeaderboardEmbed, addSpend, syncBoosters, syncAllRoles } from './leaderboard.js';
 import { sendProof } from './proofs.js';
 import { sendVouchTutorial, deleteVouch } from './vouch.js';
+import { sendWelcomeTest } from './welcome.js';
 import { syncGuild } from './channels.js';
 
 const POLL_INTERVAL = 5000; // 5 secondes
@@ -50,6 +51,9 @@ async function processAction(action) {
         break;
       case 'DELETE_VOUCH':
         result = await deleteVouch(payload);
+        break;
+      case 'SEND_WELCOME_TEST':
+        result = await sendWelcomeTest(payload);
         break;
       default:
         result = { ok: true, skipped: true };

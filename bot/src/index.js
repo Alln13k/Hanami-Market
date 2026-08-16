@@ -4,6 +4,7 @@ import { prisma, getSetting, setSetting } from './prisma.js';
 import { handleInteraction } from './events/interactionCreate.js';
 import { handleMessage } from './events/messageCreate.js';
 import { handleGuildMemberUpdate } from './events/guildMemberUpdate.js';
+import { handleGuildMemberAdd } from './events/guildMemberAdd.js';
 import { startWorker } from './services/actions.js';
 import { syncGuild } from './services/channels.js';
 import { commands } from './commands/index.js';
@@ -57,6 +58,7 @@ client.once(Events.ClientReady, async (c) => {
 client.on(Events.InteractionCreate, handleInteraction);
 client.on(Events.MessageCreate, handleMessage);
 client.on(Events.GuildMemberUpdate, handleGuildMemberUpdate);
+client.on(Events.GuildMemberAdd, handleGuildMemberAdd);
 
 client.login(config.token).catch((err) => {
   console.error('❌ Impossible de se connecter :', err.message);

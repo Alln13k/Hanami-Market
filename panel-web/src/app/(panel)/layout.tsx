@@ -14,6 +14,7 @@ import {
   Trophy,
   Camera,
   BadgeCheck,
+  PartyPopper,
 } from 'lucide-react';
 
 const NAV = [
@@ -22,6 +23,7 @@ const NAV = [
   { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
   { href: '/proofs', label: 'Preuves', icon: Camera },
   { href: '/vouch', label: 'Vouch', icon: BadgeCheck },
+  { href: '/welcome', label: 'Bienvenue', icon: PartyPopper },
   { href: '/tickets', label: 'Tickets', icon: Ticket },
   { href: '/transcripts', label: 'Transcriptions', icon: History },
   { href: '/embeds', label: 'Embeds', icon: MessageSquare },
