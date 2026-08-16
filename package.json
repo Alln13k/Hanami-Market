@@ -22,6 +22,6 @@
     "typescript": "^5.5.0"
   },
   "prisma": {
-    "schema": "../shared/prisma/schema.prisma"
+    "schema": "shared/prisma/schema.prisma"
   }
 }

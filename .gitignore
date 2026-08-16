@@ -20,3 +20,6 @@ prisma/*.db
 # OS
 .DS_Store
 Thumbs.db
+
+# Bot (hébergé séparément, pas dans ce dépôt)
+bot/
