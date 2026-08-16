@@ -16,11 +16,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
   const ticket = await prisma.ticket.findUnique({ where: { id: params.id } });
   if (!ticket) return NextResponse.json({ error: 'Ticket introuvable' }, { status: 404 });
 
-  await prisma.ticket.update({
-    where: { id: ticket.id },
-    data: { status: 'CLOSED', closedAt: new Date() },
-  });
-
+  // Le bot gère toute la fermeture : transcription, suppression du ticket et du salon
   await prisma.botAction.create({
     data: {
       type: 'CLOSE_TICKET',
