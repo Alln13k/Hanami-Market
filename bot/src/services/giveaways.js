@@ -124,14 +124,27 @@ export async function startGiveaway({
     new ButtonBuilder().setLabel('🎉 Participer').setStyle(ButtonStyle.Success).setCustomId(`giveaway_join_${giveaway.id}`)
   );
 
-  const sent = await channel.send({
-    content: pingRoleId ? `<@&${pingRoleId}>` : '',
-    embeds: [buildGiveawayEmbed(giveaway, 0)],
-    components: [row],
-  }).catch(async () => {
+  const send = () =>
+    channel.send({
+      content: pingRoleId ? `<@&${pingRoleId}>` : '',
+      embeds: [buildGiveawayEmbed(giveaway, 0)],
+      components: [row],
+    });
+
+  let sent;
+  try {
+    sent = await send();
+  } catch {
     // Si le ping d'un rôle échoue (permissions), on renvoie sans ping
-    return channel.send({ embeds: [buildGiveawayEmbed(giveaway, 0)], components: [row] });
-  });
+    try {
+      sent = await channel.send({ embeds: [buildGiveawayEmbed(giveaway, 0)], components: [row] });
+    } catch (e) {
+      return {
+        ok: false,
+        error: `Impossible d'envoyer le message dans <#${channel.id}> (permissions ?) : ${String(e?.message || e).slice(0, 200)}`,
+      };
+    }
+  }
 
   await prisma.giveaway.update({ where: { id: giveaway.id }, data: { messageId: sent.id } });
 

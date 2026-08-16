@@ -124,7 +124,10 @@ export async function handleInteraction(interaction) {
       } catch (err) {
         console.error(`Erreur commande /${interaction.commandName}:`, err);
         await interaction
-          .reply({ content: '❌ Une erreur est survenue.', ephemeral: true })
+          .reply({
+            content: `❌ Une erreur est survenue : \`${String(err?.message || err).slice(0, 200)}\``,
+            ephemeral: true,
+          })
           .catch(() => {});
       }
     }
