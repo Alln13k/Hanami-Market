@@ -108,16 +108,14 @@ export function CustomEmbedForm({ channels }: { channels: Channel[] }) {
       <div>
         <label>Champs (optionnel)</label>
         {fields.map((f, i) => (
-          <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+          <div key={i} className="field-row" style={{ marginBottom: 8 }}>
             <input
-              style={{ flex: 1 }}
               placeholder="Nom"
               value={f.name}
               onChange={(e) => updateField(i, { name: e.target.value })}
               maxLength={256}
             />
             <input
-              style={{ flex: 2 }}
               placeholder="Valeur"
               value={f.value}
               onChange={(e) => updateField(i, { value: e.target.value })}

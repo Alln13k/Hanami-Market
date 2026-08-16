@@ -30,7 +30,7 @@ async function handleOpenTicket(interaction) {
   await interaction.reply({
     embeds: [shopEmbed('🎫 Nouveau ticket', 'Choisis le type de ticket :')],
     components: [new ActionRowBuilder().addComponents(select)],
-    ephemeral: false,
+    ephemeral: true,
   });
 }
 

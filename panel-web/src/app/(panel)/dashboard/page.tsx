@@ -4,9 +4,9 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
-  const [openTickets, totalTickets, totalMessages, pendingActions] = await Promise.all([
+  const [openTickets, transcripts, totalMessages, pendingActions] = await Promise.all([
     prisma.ticket.count({ where: { status: 'OPEN' } }),
-    prisma.ticket.count(),
+    prisma.ticketTranscript.count(),
     prisma.ticketMessage.count(),
     prisma.botAction.count({ where: { status: 'PENDING' } }),
   ]);
@@ -28,8 +28,8 @@ export default async function DashboardPage() {
           <div className="label">Tickets ouverts</div>
         </div>
         <div className="card stat">
-          <div className="value">{totalTickets}</div>
-          <div className="label">Tickets au total</div>
+          <div className="value">{transcripts}</div>
+          <div className="label">Transcriptions archivées</div>
         </div>
         <div className="card stat">
           <div className="value">{totalMessages}</div>
@@ -42,9 +42,9 @@ export default async function DashboardPage() {
       </div>
 
       <div className="card">
-        <h2 style={{ marginTop: 0, fontSize: 18 }}>Derniers tickets</h2>
+        <h2 style={{ marginTop: 0, fontSize: 18 }}>Tickets ouverts récents</h2>
         {recentTickets.length === 0 ? (
-          <p className="muted">Aucun ticket pour le moment.</p>
+          <p className="muted">Aucun ticket ouvert pour le moment.</p>
         ) : (
           <table>
             <thead>
@@ -52,7 +52,6 @@ export default async function DashboardPage() {
                 <th>ID</th>
                 <th>Utilisateur</th>
                 <th>Type</th>
-                <th>Statut</th>
                 <th>Messages</th>
                 <th>Ouvert le</th>
                 <th></th>
@@ -64,7 +63,6 @@ export default async function DashboardPage() {
                   <td><code>{t.id.slice(0, 8)}…</code></td>
                   <td>{t.userName || t.userId}</td>
                   <td>{t.type}</td>
-                  <td><span className={`badge ${t.status}`}>{t.status}</span></td>
                   <td>{t._count.messages}</td>
                   <td className="muted">{new Date(t.createdAt).toLocaleString('fr-FR')}</td>
                   <td><Link href={`/tickets/${t.id}`}>Ouvrir</Link></td>

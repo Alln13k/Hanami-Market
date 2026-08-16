@@ -17,9 +17,12 @@ export async function storeTicketMessage(ticketId, { authorId, authorName, autho
   });
 }
 
-// Ferme et supprime proprement un ticket
+// Ferme, archive la transcription puis supprime proprement un ticket
 export async function closeTicket(channelId, reason = 'Ticket fermé') {
-  const ticket = await prisma.ticket.findUnique({ where: { channelId } });
+  const ticket = await prisma.ticket.findUnique({
+    where: { channelId },
+    include: { messages: { orderBy: { createdAt: 'asc' } } },
+  });
   if (!ticket) return { ok: false, error: 'Ticket introuvable' };
   if (ticket.status === 'CLOSED') return { ok: true };
 
@@ -31,10 +34,35 @@ export async function closeTicket(channelId, reason = 'Ticket fermé') {
     await channel.send({ embeds: [embed] }).catch(() => {});
   }
 
-  await prisma.ticket.update({
-    where: { id: ticket.id },
-    data: { status: 'CLOSED', closedAt: new Date() },
-  });
+  // Construit la transcription
+  const lines = [
+    `🎫 Ticket ${ticket.type} — ${ticket.userName} (${ticket.userId})`,
+    `🕐 Ouvert : ${ticket.createdAt.toISOString()}`,
+    `🔒 Fermé : ${new Date().toISOString()}`,
+    `📝 Raison : ${reason}`,
+    '----------------------------------------',
+    ...ticket.messages.map(
+      (m) => `[${m.createdAt.toISOString()}] (${m.authorType}) ${m.authorName} :\n${m.content}`
+    ),
+  ];
+
+  // Archive la transcription puis supprime le ticket et ses messages
+  try {
+    await prisma.ticketTranscript.create({
+      data: {
+        channelId: ticket.channelId,
+        userId: ticket.userId,
+        userName: ticket.userName,
+        type: ticket.type,
+        content: lines.join('\n\n'),
+        openedAt: ticket.createdAt,
+        closedAt: new Date(),
+      },
+    });
+    await prisma.ticket.delete({ where: { id: ticket.id } });
+  } catch (err) {
+    return { ok: false, error: String(err?.message || err) };
+  }
 
   // Suppression différée du salon
   setTimeout(async () => {

@@ -49,6 +49,19 @@ model GuildChannel {
   updatedAt DateTime @updatedAt
 }
 
+// Transcription archivée à la fermeture d'un ticket (le ticket est ensuite supprimé)
+model TicketTranscript {
+  id        String   @id @default(cuid())
+  channelId String   @db.VarChar(64)
+  userId    String   @db.VarChar(64)
+  userName  String   @default("")
+  type      String   @default("SUPPORT")
+  content   String   @db.Text
+  openedAt  DateTime
+  closedAt  DateTime
+  createdAt DateTime @default(now())
+}
+
 // File d'actions "panel -> bot" : le bot poll cette table et agit sur Discord
 // type: CLOSE_TICKET | REPLY_TICKET | SEND_EMBED | CREATE_TICKET_BUTTON
 model BotAction {
