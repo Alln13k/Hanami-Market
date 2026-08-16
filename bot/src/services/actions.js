@@ -4,6 +4,7 @@ import { sendCustomEmbed, sendTicketButtonEmbed } from './embeds.js';
 import { updateProductsEmbed } from './products.js';
 import { updateLeaderboardEmbed, addSpend, syncBoosters, syncAllRoles } from './leaderboard.js';
 import { sendProof } from './proofs.js';
+import { sendVouchTutorial } from './vouch.js';
 import { syncGuild } from './channels.js';
 
 const POLL_INTERVAL = 5000; // 5 secondes
@@ -43,6 +44,9 @@ async function processAction(action) {
         break;
       case 'SEND_PROOF':
         result = await sendProof(payload);
+        break;
+      case 'SEND_VOUCH_TUTORIAL':
+        result = await sendVouchTutorial(payload);
         break;
       default:
         result = { ok: true, skipped: true };

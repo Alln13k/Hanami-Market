@@ -2,6 +2,7 @@ import { prisma } from '../prisma.js';
 import { isAdmin } from '../utils/perms.js';
 import { storeTicketMessage } from '../services/tickets.js';
 import { handleCustomCommand } from '../services/customCommands.js';
+import { handleVouch } from '../services/vouch.js';
 
 // Stocke les messages envoyés dans un salon de ticket et gère les commandes perso
 export async function handleMessage(message) {
@@ -24,4 +25,5 @@ export async function handleMessage(message) {
   }
 
   await handleCustomCommand(message);
+  await handleVouch(message);
 }
