@@ -1,0 +1,26 @@
+{
+  "name": "discord-shop-bot",
+  "version": "1.0.0",
+  "description": "Bot Discord du shop, géré par le panel web (Vercel)",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "deploy": "node src/deploy-commands.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  }
+}

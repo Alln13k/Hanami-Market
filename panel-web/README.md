@@ -50,13 +50,13 @@ PAYPAL_ME=ton_pseudo_paypal
 
 ```bash
 npm install
-npx prisma generate        # génère le client Prisma depuis shared/prisma/schema.prisma
+npx prisma generate        # génère le client Prisma depuis prisma/schema.prisma
 npm run dev
 ```
 
 ## Base de données
 
-Le schéma MySQL partagé est dans `shared/prisma/schema.prisma`. Pour créer les tables :
+Le schéma MySQL est dans `prisma/schema.prisma`. Pour créer les tables :
 
 ```bash
 npx prisma db push
@@ -72,5 +72,5 @@ npx prisma db push
 │   │   └── api/        # routes API (auth, produits, commandes, tickets, webhook)
 │   ├── lib/            # prisma, auth
 │   └── middleware.ts   # protection des pages
-└── shared/prisma/      # schéma Prisma (partagé avec le bot)
+└── prisma/schema.prisma  # schéma de la base de données
 ```
