@@ -1,18 +1,21 @@
 import { prisma } from '@/lib/prisma';
-import { BadgeCheck, Pin, Send, Info, History } from 'lucide-react';
+import { BadgeCheck, Pin, Send, Info, History, ShieldCheck } from 'lucide-react';
 import { VouchChannelForm } from './channel-form';
 import { VouchTutorialForm } from './tutorial-form';
 import { DeleteVouchButton } from './delete-vouch-button';
+import { VouchRoleForm } from './role-form';
 
 export const dynamic = 'force-dynamic';
 
 export default async function VouchPage() {
-  const [channels, channelSetting, titleSetting, descriptionSetting, vouches] = await Promise.all([
+  const [channels, channelSetting, titleSetting, descriptionSetting, vouches, roles, roleSetting] = await Promise.all([
     prisma.guildChannel.findMany({ where: { isText: true }, orderBy: [{ position: 'asc' }] }),
     prisma.setting.findUnique({ where: { key: 'vouchChannelId' } }),
     prisma.setting.findUnique({ where: { key: 'vouchTutorialTitle' } }),
     prisma.setting.findUnique({ where: { key: 'vouchTutorialDescription' } }),
     prisma.vouch.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
+    prisma.role.findMany({ orderBy: [{ position: 'desc' }] }),
+    prisma.setting.findUnique({ where: { key: 'vouchAllowedRoleId' } }),
   ]);
 
   return (
@@ -26,6 +29,16 @@ export default async function VouchPage() {
         {channelSetting?.value && (
           <p className="muted" style={{ margin: '8px 0 0', fontSize: 12 }}>
             Salon actuel : {channels.find((c) => c.channelId === channelSetting.value)?.name || channelSetting.value}
+          </p>
+        )}
+      </div>
+
+      <div className="card" style={{ maxWidth: 760, marginBottom: 24 }}>
+        <h2 style={{ marginTop: 0, fontSize: 18 }}><ShieldCheck size={16} /> Rôle autorisé</h2>
+        <VouchRoleForm roles={roles} initialRoleId={roleSetting?.value || ''} />
+        {roleSetting?.value && (
+          <p className="muted" style={{ margin: '8px 0 0', fontSize: 12 }}>
+            Rôle actuel : {roles.find((r) => r.roleId === roleSetting.value)?.name || roleSetting.value}
           </p>
         )}
       </div>

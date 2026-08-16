@@ -39,6 +39,22 @@ export async function handleVouch(message) {
     .match(/^\+vouch\s+<@!?(\d+)>\s+(\d+[\.,]\d+|\d+)\s+(.+?)\s+x(\d+)\s*$/i);
   if (!match) return;
 
+  // Restriction par rôle : seuls les membres avec le rôle autorisé peuvent poster une vouch
+  const allowedRoleId = await getSetting('vouchAllowedRoleId');
+  const adminRoleId = await getSetting('adminRoleId');
+  if (allowedRoleId) {
+    const hasRole = message.member?.roles?.cache?.has(allowedRoleId);
+    const isAdmin = adminRoleId && message.member?.roles?.cache?.has(adminRoleId);
+    if (!hasRole && !isAdmin) {
+      const warn = await message
+        .reply({ content: `❌ Seuls les membres avec le rôle <@&${allowedRoleId}> peuvent poster une vouch.` })
+        .catch(() => null);
+      if (warn) setTimeout(() => warn.delete().catch(() => {}), 5000);
+      await message.delete().catch(() => {});
+      return;
+    }
+  }
+
   const [, targetUserId, price, product, quantity] = match;
 
   const target = message.guild?.members.cache.get(targetUserId);
