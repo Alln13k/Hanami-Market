@@ -32,7 +32,7 @@ export function ReplyForm({ ticketId }: { ticketId: string }) {
 
   return (
     <form onSubmit={submit}>
-      <label>Répondre au client (sera envoyé dans le salon Discord)</label>
+      <label>Répondre au client (le message part du bot dans le salon Discord)</label>
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}

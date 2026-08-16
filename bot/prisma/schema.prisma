@@ -33,9 +33,53 @@ model TicketMessage {
   ticketId   String
   authorId   String   @db.VarChar(64)
   authorName String   @default("")
+  avatarUrl  String   @default("")
   authorType String   @default("USER") // USER | STAFF | BOT
   content    String   @db.Text
   createdAt  DateTime @default(now())
+}
+
+// Membre du serveur synchronisé (nom d'affichage, avatar, statut booster)
+model Member {
+  userId    String   @id @db.VarChar(64)
+  name      String   @default("")
+  avatarUrl String   @default("")
+  isBooster Boolean  @default(false)
+  joinedAt  DateTime?
+  updatedAt DateTime @updatedAt
+}
+
+// Journal de modération (ban / kick / unban)
+model ModerationLog {
+  id         String   @id @default(cuid())
+  type       String // BAN | KICK | UNBAN
+  targetId   String   @db.VarChar(64)
+  targetName String   @default("")
+  reason     String   @default("")
+  createdAt  DateTime @default(now())
+}
+
+// Invitation du serveur (pour le tracking des arrivées)
+model Invite {
+  code      String   @id
+  channelId String?  @db.VarChar(64)
+  inviterId String?  @db.VarChar(64)
+  uses      Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Arrivée d'un membre via une invitation (+ départ éventuel)
+model InviteJoin {
+  id          String   @id @default(cuid())
+  inviteCode  String   @default("")
+  inviterId   String?  @db.VarChar(64)
+  inviterName String   @default("")
+  userId      String   @db.VarChar(64)
+  userName    String   @default("")
+  avatarUrl   String   @default("")
+  joinedAt    DateTime @default(now())
+  leftAt      DateTime?
 }
 
 // Salon Discord synchronisé pour le choix d'envoi d'embeds
@@ -102,7 +146,7 @@ model TicketTranscript {
 }
 
 // File d'actions "panel -> bot" : le bot poll cette table et agit sur Discord
-// type: CLOSE_TICKET | REPLY_TICKET | SEND_EMBED | CREATE_TICKET_BUTTON | UPDATE_PRODUCTS_EMBED | UPDATE_LEADERBOARD_EMBED | ADD_SPEND | SYNC_BOOSTERS | SYNC_ROLES | SEND_PROOF | SEND_VOUCH_TUTORIAL | DELETE_VOUCH | SEND_WELCOME_TEST
+// type: CLOSE_TICKET | REPLY_TICKET | SEND_EMBED | CREATE_TICKET_BUTTON | UPDATE_PRODUCTS_EMBED | UPDATE_LEADERBOARD_EMBED | ADD_SPEND | SYNC_BOOSTERS | SYNC_ROLES | SEND_PROOF | SEND_VOUCH_TUTORIAL | DELETE_VOUCH | SEND_WELCOME_TEST | BAN_USER | KICK_USER | UNBAN_USER | SYNC_INVITES
 model BotAction {
   id         String    @id @default(cuid())
   type       String

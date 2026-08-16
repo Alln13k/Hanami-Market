@@ -11,9 +11,9 @@ export async function notifyAdmin(message) {
 }
 
 // Stocke un message de ticket (utilisé par l'événement messageCreate)
-export async function storeTicketMessage(ticketId, { authorId, authorName, authorType, content }) {
+export async function storeTicketMessage(ticketId, { authorId, authorName, avatarUrl, authorType, content }) {
   await prisma.ticketMessage.create({
-    data: { ticketId, authorId, authorName, authorType, content },
+    data: { ticketId, authorId, authorName, avatarUrl, authorType, content },
   });
 }
 
@@ -76,7 +76,7 @@ export async function closeTicket(channelId, reason = 'Ticket fermé') {
   return { ok: true };
 }
 
-// Répond à un ticket depuis le panel : envoie le message dans le salon et le stocke
+// Répond à un ticket depuis le panel : envoie le message en tant que le bot puis le stocke
 export async function replyToTicket(ticketId, content, staffName = 'Staff') {
   const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
   if (!ticket) return { ok: false, error: 'Ticket introuvable' };
@@ -85,14 +85,14 @@ export async function replyToTicket(ticketId, content, staffName = 'Staff') {
   const channel = guild?.channels?.cache?.get(ticket.channelId);
   if (!channel) return { ok: false, error: 'Salon du ticket introuvable' };
 
-  await channel
-    .send({ embeds: [shopEmbed('💬 Réponse du staff', content)] })
-    .catch(() => {});
+  const bot = global.client?.user;
+  await channel.send({ content }).catch(() => {});
 
   await storeTicketMessage(ticket.id, {
-    authorId: 'panel',
-    authorName: staffName,
-    authorType: 'STAFF',
+    authorId: bot?.id || 'panel',
+    authorName: bot?.displayName || staffName,
+    avatarUrl: bot?.displayAvatarURL() || '',
+    authorType: 'BOT',
     content,
   });
 

@@ -15,6 +15,8 @@ import {
   Camera,
   BadgeCheck,
   PartyPopper,
+  Shield,
+  Link2,
 } from 'lucide-react';
 
 const NAV = [
@@ -24,6 +26,8 @@ const NAV = [
   { href: '/proofs', label: 'Preuves', icon: Camera },
   { href: '/vouch', label: 'Vouch', icon: BadgeCheck },
   { href: '/welcome', label: 'Bienvenue', icon: PartyPopper },
+  { href: '/invites', label: 'Invitations', icon: Link2 },
+  { href: '/moderation', label: 'Modération', icon: Shield },
   { href: '/tickets', label: 'Tickets', icon: Ticket },
   { href: '/transcripts', label: 'Transcriptions', icon: History },
   { href: '/embeds', label: 'Embeds', icon: MessageSquare },

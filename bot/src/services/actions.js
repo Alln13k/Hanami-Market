@@ -6,6 +6,8 @@ import { updateLeaderboardEmbed, addSpend, syncBoosters, syncAllRoles } from './
 import { sendProof } from './proofs.js';
 import { sendVouchTutorial, deleteVouch } from './vouch.js';
 import { sendWelcomeTest } from './welcome.js';
+import { banUser, kickUser, unbanUser } from './moderation.js';
+import { syncInvites } from './invites.js';
 import { syncGuild } from './channels.js';
 
 const POLL_INTERVAL = 5000; // 5 secondes
@@ -55,6 +57,18 @@ async function processAction(action) {
       case 'SEND_WELCOME_TEST':
         result = await sendWelcomeTest(payload);
         break;
+      case 'BAN_USER':
+        result = await banUser(payload);
+        break;
+      case 'KICK_USER':
+        result = await kickUser(payload);
+        break;
+      case 'UNBAN_USER':
+        result = await unbanUser(payload);
+        break;
+      case 'SYNC_INVITES':
+        result = await syncInvites();
+        break;
       default:
         result = { ok: true, skipped: true };
     }
@@ -91,10 +105,11 @@ export function startWorker() {
     }
   }, POLL_INTERVAL);
 
-  // Synchronisation des salons et rôles toutes les 5 minutes
+  // Synchronisation des salons, rôles, membres et invitations toutes les 5 minutes
   setInterval(async () => {
     try {
       await syncGuild();
+      await syncInvites();
     } catch {
       /* ignore */
     }

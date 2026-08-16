@@ -55,17 +55,26 @@ export default async function TicketDetailPage({ params }: { params: { id: strin
             {ticket.messages.map((m) => (
               <div
                 key={m.id}
+                className="ticket-msg"
                 style={{
-                  background: m.authorType === 'STAFF' ? 'rgba(46,204,113,.08)' : 'var(--panel-2)',
+                  background: m.authorType === 'STAFF' ? 'rgba(46,204,113,.08)' : m.authorType === 'BOT' ? 'rgba(244,158,205,.08)' : 'var(--panel-2)',
                   border: '1px solid var(--border)',
                   borderRadius: 10,
                   padding: '10px 14px',
                 }}
               >
-                <div className="flex justify-between" style={{ marginBottom: 6 }}>
-                  <strong>{m.authorName}</strong>
+                <div className="flex" style={{ marginBottom: 6, gap: 8, justifyContent: 'space-between' }}>
+                  <span className="flex" style={{ gap: 8 }}>
+                    {m.avatarUrl ? (
+                      <img src={m.avatarUrl} alt="" width={26} height={26} style={{ borderRadius: '50%' }} />
+                    ) : (
+                      <span className="avatar-fallback">{m.authorName?.charAt(0).toUpperCase() || '?'}</span>
+                    )}
+                    <strong>{m.authorName}</strong>
+                    {m.authorType === 'STAFF' && <span className="badge OPEN">Staff</span>}
+                    {m.authorType === 'BOT' && <span className="badge PENDING">Bot</span>}
+                  </span>
                   <span className="muted" style={{ fontSize: 12 }}>
-                    {m.authorType === 'STAFF' ? 'Staff' : m.authorType === 'BOT' ? 'Bot' : 'Utilisateur'} ·{' '}
                     {new Date(m.createdAt).toLocaleString('fr-FR')}
                   </span>
                 </div>

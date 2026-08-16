@@ -56,4 +56,24 @@ export async function syncGuild() {
       },
     });
   }
+
+  await guild.members.fetch();
+  for (const member of guild.members.cache.values()) {
+    await prisma.member.upsert({
+      where: { userId: member.id },
+      update: {
+        name: member.displayName,
+        avatarUrl: member.user?.displayAvatarURL() || '',
+        isBooster: !!member.premiumSince,
+        joinedAt: member.joinedAt,
+      },
+      create: {
+        userId: member.id,
+        name: member.displayName,
+        avatarUrl: member.user?.displayAvatarURL() || '',
+        isBooster: !!member.premiumSince,
+        joinedAt: member.joinedAt,
+      },
+    });
+  }
 }

@@ -18,7 +18,8 @@ export async function handleMessage(message) {
     const authorType = isAdmin(message.member) ? 'STAFF' : 'USER';
     await storeTicketMessage(ticket.id, {
       authorId: message.author.id,
-      authorName: message.author.username,
+      authorName: message.member?.displayName || message.author.displayName,
+      avatarUrl: message.author.displayAvatarURL(),
       authorType,
       content: message.content,
     }).catch(() => {});

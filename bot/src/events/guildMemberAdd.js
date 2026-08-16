@@ -1,6 +1,7 @@
 import { sendWelcome } from '../services/welcome.js';
+import { trackJoin } from '../services/invites.js';
 
-// Quand un membre rejoint le serveur, on lui souhaite la bienvenue
+// Quand un membre rejoint le serveur : bienvenue + tracking de l'invitation utilisée
 export async function handleGuildMemberAdd(member) {
-  await sendWelcome(member).catch(() => {});
+  await Promise.allSettled([sendWelcome(member), trackJoin(member)]);
 }
