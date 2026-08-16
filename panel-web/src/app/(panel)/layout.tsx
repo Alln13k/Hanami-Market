@@ -26,7 +26,10 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
   return (
     <div className="panel-layout">
       <aside className="sidebar">
-        <div className="logo">🛒 Shop Panel</div>
+        <div className="logo">
+          <img className="logo-img" src="https://i.imgur.com/s2BQbyJ.jpeg" alt="Logo Hanami" />
+          <span className="logo-text">Hanami Market</span>
+        </div>
         <nav>
           {NAV.map((item) => (
             <Link

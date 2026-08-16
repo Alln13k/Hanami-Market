@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       text: String(body.text || ''),
       title: String(body.title || '').slice(0, 256),
       description: String(body.description || ''),
-      color: String(body.color || '5865F2').replace('#', ''),
+      color: String(body.color || 'f49ecd').replace('#', ''),
       imageUrl: String(body.imageUrl || ''),
       footer: String(body.footer || ''),
     },

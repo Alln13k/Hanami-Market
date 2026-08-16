@@ -30,8 +30,9 @@ export default function LoginPage() {
   return (
     <main className="login-screen">
       <div className="login-box">
-        <h1 style={{ marginTop: 0 }}>🛒 Shop Panel</h1>
-        <p className="muted" style={{ marginTop: -8 }}>Connexion à l'administration</p>
+        <img className="login-logo" src="https://i.imgur.com/s2BQbyJ.jpeg" alt="Logo Hanami" />
+        <h1 className="logo-text" style={{ marginTop: 0 }}>Hanami Market</h1>
+        <p className="muted" style={{ marginTop: -8 }}>🌸 Connexion à l'administration</p>
         <form onSubmit={onSubmit}>
           <label htmlFor="password">Mot de passe</label>
           <input

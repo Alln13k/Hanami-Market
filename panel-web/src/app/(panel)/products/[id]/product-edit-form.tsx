@@ -66,7 +66,7 @@ export function ProductEditForm({ product }: { product: Product }) {
       </div>
       <div>
         <label>Couleur</label>
-        <input value={form.color} onChange={(e) => set('color', e.target.value)} placeholder="5865F2" maxLength={6} />
+        <input value={form.color} onChange={(e) => set('color', e.target.value)} placeholder="f49ecd" maxLength={6} />
       </div>
       {error && <p style={{ color: 'var(--red)', margin: 0, fontSize: 14 }}>{error}</p>}
       <div>

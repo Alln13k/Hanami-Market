@@ -10,7 +10,7 @@ export function TicketButtonForm({ channels }: { channels: Channel[] }) {
   const [channelId, setChannelId] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [color, setColor] = useState('5865F2');
+  const [color, setColor] = useState('f49ecd');
   const [imageUrl, setImageUrl] = useState('');
   const [buttonLabel, setButtonLabel] = useState('🎫 Ouvrir un ticket');
   const [sending, setSending] = useState(false);
@@ -60,7 +60,7 @@ export function TicketButtonForm({ channels }: { channels: Channel[] }) {
         </div>
         <div>
           <label>Couleur</label>
-          <input value={color} onChange={(e) => setColor(e.target.value)} placeholder="5865F2" maxLength={6} />
+          <input value={color} onChange={(e) => setColor(e.target.value)} placeholder="f49ecd" maxLength={6} />
         </div>
       </div>
 

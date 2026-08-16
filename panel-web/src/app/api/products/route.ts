@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       description: String(body.description || ''),
       price,
       stock,
-      color: String(body.color || '5865F2').replace('#', ''),
+      color: String(body.color || 'f49ecd').replace('#', ''),
     },
   });
 

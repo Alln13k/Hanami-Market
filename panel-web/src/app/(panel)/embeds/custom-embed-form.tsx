@@ -12,7 +12,7 @@ export function CustomEmbedForm({ channels }: { channels: Channel[] }) {
   const [channelId, setChannelId] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [color, setColor] = useState('5865F2');
+  const [color, setColor] = useState('f49ecd');
   const [imageUrl, setImageUrl] = useState('');
   const [footer, setFooter] = useState('');
   const [fields, setFields] = useState<Field[]>([]);
@@ -62,7 +62,7 @@ export function CustomEmbedForm({ channels }: { channels: Channel[] }) {
     }
   }
 
-  const previewColor = `#${color.replace('#', '') || '5865F2'}`;
+  const previewColor = `#${color.replace('#', '') || 'f49ecd'}`;
 
   return (
     <form onSubmit={submit}>
@@ -85,7 +85,7 @@ export function CustomEmbedForm({ channels }: { channels: Channel[] }) {
         </div>
         <div>
           <label>Couleur</label>
-          <input value={color} onChange={(e) => setColor(e.target.value)} placeholder="5865F2" maxLength={6} />
+          <input value={color} onChange={(e) => setColor(e.target.value)} placeholder="f49ecd" maxLength={6} />
         </div>
       </div>
 

@@ -24,7 +24,7 @@ const EMPTY: FormData = {
   text: '',
   title: '',
   description: '',
-  color: '5865F2',
+  color: 'f49ecd',
   imageUrl: '',
   footer: '',
 };
@@ -113,7 +113,7 @@ export function CommandForm({
             </div>
             <div>
               <label>Couleur</label>
-              <input value={form.color} onChange={(e) => set('color', e.target.value)} placeholder="5865F2" maxLength={6} />
+              <input value={form.color} onChange={(e) => set('color', e.target.value)} placeholder="f49ecd" maxLength={6} />
             </div>
           </div>
           <div>

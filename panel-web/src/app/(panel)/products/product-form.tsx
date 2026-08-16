@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 export function ProductForm() {
   const router = useRouter();
-  const [form, setForm] = useState({ name: '', description: '', price: '', stock: '', color: '5865F2' });
+  const [form, setForm] = useState({ name: '', description: '', price: '', stock: '', color: 'f49ecd' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,7 +25,7 @@ export function ProductForm() {
     });
     setSaving(false);
     if (res.ok) {
-      setForm({ name: '', description: '', price: '', stock: '', color: '5865F2' });
+      setForm({ name: '', description: '', price: '', stock: '', color: 'f49ecd' });
       router.refresh();
     } else {
       const data = await res.json().catch(() => ({}));
@@ -55,7 +55,7 @@ export function ProductForm() {
       </div>
       <div>
         <label>Couleur</label>
-        <input value={form.color} onChange={(e) => set('color', e.target.value)} placeholder="5865F2" maxLength={6} />
+        <input value={form.color} onChange={(e) => set('color', e.target.value)} placeholder="f49ecd" maxLength={6} />
       </div>
       {error && <p style={{ color: 'var(--red)', margin: 0, fontSize: 14 }}>{error}</p>}
       <div>
