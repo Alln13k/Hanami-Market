@@ -1,10 +1,28 @@
-import { Client, GatewayIntentBits, Events } from 'discord.js';
+import { Client, GatewayIntentBits, Events, REST, Routes } from 'discord.js';
 import { config } from './config.js';
 import { prisma, getSetting, setSetting } from './prisma.js';
 import { handleInteraction } from './events/interactionCreate.js';
 import { handleMessage } from './events/messageCreate.js';
+import { handleGuildMemberUpdate } from './events/guildMemberUpdate.js';
 import { startWorker } from './services/actions.js';
 import { syncGuild } from './services/channels.js';
+import { commands } from './commands/index.js';
+
+async function deployCommands() {
+  try {
+    const rest = new REST({ version: '10' }).setToken(config.token);
+    const data = commands.map((c) => c.data.toJSON());
+    const guildId = await getSetting('guildId');
+    if (guildId) {
+      await rest.put(Routes.applicationGuildCommands(config.clientId, guildId), { body: data });
+    } else {
+      await rest.put(Routes.applicationCommands(config.clientId), { body: data });
+    }
+    console.log(`🆕 ${data.length} commandes slash déployées.`);
+  } catch (err) {
+    console.error('⚠️ Déploiement des commandes échoué :', err.message);
+  }
+}
 
 export const client = new Client({
   intents: [
@@ -29,12 +47,14 @@ client.once(Events.ClientReady, async (c) => {
   }
 
   await syncGuild().catch(() => {});
+  await deployCommands();
   startWorker();
   console.log('🟢 Worker de tickets démarré.');
 });
 
 client.on(Events.InteractionCreate, handleInteraction);
 client.on(Events.MessageCreate, handleMessage);
+client.on(Events.GuildMemberUpdate, handleGuildMemberUpdate);
 
 client.login(config.token).catch((err) => {
   console.error('❌ Impossible de se connecter :', err.message);

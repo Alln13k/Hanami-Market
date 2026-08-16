@@ -102,7 +102,7 @@ model TicketTranscript {
 }
 
 // File d'actions "panel -> bot" : le bot poll cette table et agit sur Discord
-// type: CLOSE_TICKET | REPLY_TICKET | SEND_EMBED | CREATE_TICKET_BUTTON
+// type: CLOSE_TICKET | REPLY_TICKET | SEND_EMBED | CREATE_TICKET_BUTTON | UPDATE_PRODUCTS_EMBED | UPDATE_LEADERBOARD_EMBED | ADD_SPEND | SYNC_BOOSTERS | SYNC_ROLES
 model BotAction {
   id         String    @id @default(cuid())
   type       String
@@ -111,4 +111,23 @@ model BotAction {
   error      String?   @db.Text
   createdAt  DateTime  @default(now())
   executedAt DateTime?
+}
+
+// Total dépensé par membre (leaderboard public)
+model LeaderboardEntry {
+  userId     String   @id @db.VarChar(64)
+  username   String   @default("")
+  totalSpend Decimal  @db.Decimal(10, 2)
+  roleId     String?  @db.VarChar(64) // rôle récompense atteint
+  updatedAt  DateTime @updatedAt
+}
+
+// Palier de récompense : au-delà d'un total dépensé, le membre gagne un rôle
+model SpendRole {
+  id        String   @id @default(cuid())
+  name      String
+  roleId    String   @db.VarChar(64)
+  threshold Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

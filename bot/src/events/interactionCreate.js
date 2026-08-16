@@ -9,6 +9,7 @@ import {
 import { prisma, getSetting } from '../prisma.js';
 import { shopEmbed } from '../utils/embeds.js';
 import { closeTicket } from '../services/tickets.js';
+import { commands } from '../commands/index.js';
 
 // Ouverture d'un ticket depuis le bouton
 async function handleOpenTicket(interaction) {
@@ -111,6 +112,22 @@ async function handleCloseTicket(interaction) {
 }
 
 export async function handleInteraction(interaction) {
+  // Commandes slash (setup, ticket, addspend, syncboosters...)
+  if (interaction.isChatInputCommand()) {
+    const command = commands.find((c) => c.data.name === interaction.commandName);
+    if (command) {
+      try {
+        await command.execute(interaction);
+      } catch (err) {
+        console.error(`Erreur commande /${interaction.commandName}:`, err);
+        await interaction
+          .reply({ content: '❌ Une erreur est survenue.', ephemeral: true })
+          .catch(() => {});
+      }
+    }
+    return;
+  }
+
   if (interaction.isStringSelectMenu()) {
     if (interaction.customId === 'ticket_type') return handleTicketType(interaction);
   }
