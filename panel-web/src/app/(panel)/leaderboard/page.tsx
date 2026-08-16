@@ -11,13 +11,19 @@ import { SyncButtons } from './sync-buttons';
 export const dynamic = 'force-dynamic';
 
 export default async function LeaderboardPage() {
-  const [entries, rewards, roles, channels, boosterSetting] = await Promise.all([
+  const [entries, rewards, roles, channels, boosterSetting, vouches] = await Promise.all([
     prisma.leaderboardEntry.findMany({ orderBy: [{ totalSpend: 'desc' }, { updatedAt: 'asc' }], take: 50 }),
     prisma.spendRole.findMany({ orderBy: { threshold: 'asc' } }),
     prisma.role.findMany({ orderBy: { position: 'desc' } }),
     prisma.guildChannel.findMany({ where: { isText: true }, orderBy: [{ position: 'asc' }] }),
     prisma.setting.findUnique({ where: { key: 'boosterRoleId' } }),
+    prisma.vouch.findMany({ select: { price: true, quantity: true } }),
   ]);
+
+  const sales = vouches.length;
+  const itemsSold = vouches.reduce((a, v) => a + v.quantity, 0);
+  const revenue = vouches.reduce((a, v) => a + Number(v.price) * v.quantity, 0);
+  const fmt = (n: number) => n.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
 
   const roleName = (id: string | null) => {
     if (!id) return null;
@@ -31,9 +37,27 @@ export default async function LeaderboardPage() {
       <h1 className="page-title">Leaderboard des dépenses</h1>
       <p className="page-sub">Le classement s'affiche en permanence dans le salon choisi et se met à jour à chaque dépense.</p>
 
+      <div className="grid">
+        <div className="card stat">
+          <div className="value">{sales}</div>
+          <div className="label">Ventes sur le serveur</div>
+        </div>
+        <div className="card stat">
+          <div className="value">{itemsSold}</div>
+          <div className="label">Articles vendus</div>
+        </div>
+        <div className="card stat">
+          <div className="value">{fmt(revenue)}</div>
+          <div className="label">Chiffre d'affaires</div>
+        </div>
+      </div>
+
       <div className="card" style={{ maxWidth: 760, marginBottom: 24 }}>
         <h2 style={{ marginTop: 0, fontSize: 18 }}><Pin size={16} /> Embed public</h2>
         <PublishLeaderboardForm channels={channels} />
+        <p className="muted" style={{ margin: '8px 0 0', fontSize: 12 }}>
+          L'embed affiche en haut le total des ventes du serveur (nombre de ventes, articles vendus et chiffre d'affaires).
+        </p>
       </div>
 
       <div className="card" style={{ maxWidth: 760, marginBottom: 24 }}>

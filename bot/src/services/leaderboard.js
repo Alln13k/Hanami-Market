@@ -22,15 +22,23 @@ export async function updateLeaderboardEmbed(channelIdOverride) {
     take: 10,
   });
 
+  // Statistiques des ventes du serveur (nombre de ventes, articles vendus, chiffre d'affaires)
+  const vouches = await prisma.vouch.findMany({ select: { price: true, quantity: true } }).catch(() => []);
+  const sales = vouches.length;
+  const items = vouches.reduce((a, v) => a + (v.quantity || 0), 0);
+  const revenue = vouches.reduce((a, v) => a + Number(v.price) * (v.quantity || 0), 0);
+
   const lines = entries.map((e, i) => {
     const rank = MEDALS[i] || `${i + 1}.`;
     const role = e.roleId ? ` <@&${e.roleId}>` : '';
     return `${rank} **${e.username || e.userId}** — ${formatEuro(e.totalSpend)}${role}`;
   });
 
+  const stats = `🛒 **Ventes du serveur** : ${sales} vente${sales > 1 ? 's' : ''} · ${items} article${items > 1 ? 's' : ''} vendu${items > 1 ? 's' : ''} · ${formatEuro(revenue)} de chiffre d'affaires`;
+
   const embed = shopEmbed(
     '🏆 Leaderboard des dépenses',
-    lines.length ? lines.join('\n') : 'Aucune dépense enregistrée pour le moment.',
+    lines.length ? `${stats}\n━━━━━━━━━━━━━━━━\n${lines.join('\n')}` : `${stats}\nAucune dépense enregistrée pour le moment.`,
     'f49ecd'
   )
     .setThumbnail(SERVER_IMAGE)
