@@ -220,18 +220,28 @@ model Backup {
 
 // Giveaway : concours avec bouton "Participer", tirage de gagnants à la fin
 model Giveaway {
-  id          String          @id @default(cuid())
-  channelId   String          @db.VarChar(64)
-  messageId   String          @db.VarChar(64)
-  title       String
-  prize       String
-  description String          @default("")
-  winners     Int             @default(1)
-  endsAt      DateTime
-  endedAt     DateTime?
-  status      String          @default("RUNNING") // RUNNING | FINISHED
-  createdAt   DateTime        @default(now())
-  entries     GiveawayEntry[]
+  id                String          @id @default(cuid())
+  channelId         String          @db.VarChar(64)
+  messageId         String          @db.VarChar(64)
+  title             String
+  prize             String
+  description       String          @default("")
+  winners           Int             @default(1)
+  endsAt            DateTime
+  endedAt           DateTime?
+  status            String          @default("RUNNING") // RUNNING | FINISHED
+  createdAt         DateTime        @default(now())
+  requiredRoleId    String?         @db.VarChar(64) // rôle obligatoire pour participer
+  bannedRoleIds     String          @default("[]") // rôles exclus (JSON)
+  minSpend          Decimal?        @db.Decimal(10, 2) // minimum dépensé (leaderboard) pour participer
+  boostersBonus     Int             @default(0) // participations supplémentaires pour les boosters
+  maxParticipants   Int             @default(0) // 0 = illimité
+  announceChannelId String?         @db.VarChar(64) // salon d'annonce des gagnants
+  pingRoleId        String?         @db.VarChar(64) // rôle mentionné au lancement
+  dmMessage         String          @default("") // message privé personnalisé aux gagnants
+  deleteOnEnd       Boolean         @default(false) // supprime le message du giveaway à la fin
+  entries           GiveawayEntry[]
+  giveawayWinners   GiveawayWinner[]
 }
 
 // Participation d'un membre à un giveaway
@@ -242,7 +252,19 @@ model GiveawayEntry {
   userId     String   @db.VarChar(64)
   userName   String   @default("")
   avatarUrl  String   @default("")
+  weight     Int      @default(1) // participations comptées (1 + bonus boosters)
   createdAt  DateTime @default(now())
 
   @@unique([giveawayId, userId])
+}
+
+// Gagnants tirés d'un giveaway (historique affiché sur le panel)
+model GiveawayWinner {
+  id         String   @id @default(cuid())
+  giveaway   Giveaway @relation(fields: [giveawayId], references: [id], onDelete: Cascade)
+  giveawayId String
+  userId     String   @db.VarChar(64)
+  userName   String   @default("")
+  avatarUrl  String   @default("")
+  createdAt  DateTime @default(now())
 }

@@ -17,6 +17,14 @@ export const giveaway = {
         .addIntegerOption((o) => o.setName('winners').setDescription('Nombre de gagnants').setMinValue(1).setMaxValue(20))
         .addChannelOption((o) => o.setName('channel').setDescription('Salon où afficher le giveaway (défaut : ici)'))
         .addStringOption((o) => o.setName('description').setDescription('Description (optionnelle)'))
+        .addRoleOption((o) => o.setName('required-role').setDescription('Rôle obligatoire pour participer'))
+        .addNumberOption((o) => o.setName('min-spend').setDescription('Minimum dépensé (€) pour participer'))
+        .addIntegerOption((o) => o.setName('boosters-bonus').setDescription('Participations supplémentaires pour les boosters'))
+        .addIntegerOption((o) => o.setName('max-participants').setDescription('Participants maximum (0 = illimité)'))
+        .addChannelOption((o) => o.setName('announce').setDescription('Salon d\'annonce des gagnants'))
+        .addRoleOption((o) => o.setName('ping').setDescription('Rôle à mentionner au lancement'))
+        .addStringOption((o) => o.setName('dm').setDescription('Message privé personnalisé aux gagnants'))
+        .addBooleanOption((o) => o.setName('delete').setDescription('Supprimer le message du giveaway à la fin'))
     )
     .addSubcommand((s) =>
       s
@@ -48,6 +56,14 @@ export const giveaway = {
         durationMinutes: interaction.options.getInteger('duration', true),
         winners: interaction.options.getInteger('winners') || 1,
         description: interaction.options.getString('description') || '',
+        requiredRoleId: interaction.options.getRole('required-role')?.id || null,
+        minSpend: interaction.options.getNumber('min-spend') || null,
+        boostersBonus: interaction.options.getInteger('boosters-bonus') || 0,
+        maxParticipants: interaction.options.getInteger('max-participants') || 0,
+        announceChannelId: interaction.options.getChannel('announce')?.id || null,
+        pingRoleId: interaction.options.getRole('ping')?.id || null,
+        dmMessage: interaction.options.getString('dm') || '',
+        deleteOnEnd: interaction.options.getBoolean('delete') || false,
       });
       if (!result.ok) return interaction.reply({ content: `❌ ${result.error}`, ephemeral: true });
       return interaction.reply({ content: `✅ Giveaway lancé dans <#${channel.id}> !`, ephemeral: true });

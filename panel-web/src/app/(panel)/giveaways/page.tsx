@@ -6,13 +6,17 @@ import { GiveawayCreateForm } from './giveaway-create-form';
 export const dynamic = 'force-dynamic';
 
 export default async function GiveawaysPage() {
-  const [giveaways, channels] = await Promise.all([
+  const [giveaways, channels, roles] = await Promise.all([
     prisma.giveaway.findMany({
       orderBy: { createdAt: 'desc' },
-      include: { _count: { select: { entries: true } } },
+      include: {
+        _count: { select: { entries: true } },
+        giveawayWinners: { orderBy: { createdAt: 'asc' } },
+      },
       take: 100,
     }),
     prisma.guildChannel.findMany({ where: { isText: true }, orderBy: [{ position: 'asc' }] }),
+    prisma.role.findMany({ orderBy: { position: 'desc' } }),
   ]);
 
   const running = giveaways.filter((g) => g.status === 'RUNNING').length;
@@ -30,7 +34,10 @@ export default async function GiveawaysPage() {
         <h2 style={{ marginTop: 0, fontSize: 18 }}>
           <Sparkles size={16} /> Créer un giveaway
         </h2>
-        <GiveawayCreateForm channels={channels.map((c) => ({ channelId: c.channelId, name: c.name }))} />
+        <GiveawayCreateForm
+          channels={channels.map((c) => ({ channelId: c.channelId, name: c.name }))}
+          roles={roles.map((r) => ({ roleId: r.roleId, name: r.name }))}
+        />
       </div>
 
       <div className="grid">

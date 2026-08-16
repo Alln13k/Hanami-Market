@@ -112,6 +112,9 @@ export async function dumpBackup({ note } = {}) {
     tickets,
     ticketMessages,
     transcripts,
+    giveaways,
+    giveawayEntries,
+    giveawayWinners,
   ] = await Promise.all([
     prisma.setting.findMany(),
     prisma.product.findMany(),
@@ -129,6 +132,9 @@ export async function dumpBackup({ note } = {}) {
     prisma.ticket.findMany(),
     prisma.ticketMessage.findMany(),
     prisma.ticketTranscript.findMany(),
+    prisma.giveaway.findMany(),
+    prisma.giveawayEntry.findMany(),
+    prisma.giveawayWinner.findMany(),
   ]);
 
   const data = {
@@ -151,6 +157,9 @@ export async function dumpBackup({ note } = {}) {
     tickets: clean(tickets),
     ticketMessages: clean(ticketMessages),
     transcripts: clean(transcripts),
+    giveaways: clean(giveaways),
+    giveawayEntries: clean(giveawayEntries),
+    giveawayWinners: clean(giveawayWinners),
   };
 
   await mkdir(BACKUP_DIR, { recursive: true });
@@ -189,6 +198,7 @@ export async function dumpBackup({ note } = {}) {
       vouches: data.vouches.length,
       proofs: data.proofs.length,
       tickets: data.tickets.length,
+      giveaways: data.giveaways.length,
     },
   };
 }
@@ -295,6 +305,18 @@ export async function importBackupData(data) {
       })),
       skipDuplicates: true,
     }),
+    prisma.giveaway.createMany({
+      data: (data.giveaways ?? []).map((g) => ({
+        id: g.id, channelId: g.channelId, messageId: g.messageId, title: g.title, prize: g.prize,
+        description: g.description ?? '', winners: g.winners ?? 1, endsAt: toDate(g.endsAt),
+        endedAt: g.endedAt ? toDate(g.endedAt) : null, status: g.status ?? 'RUNNING', createdAt: toDate(g.createdAt),
+        requiredRoleId: g.requiredRoleId ?? null, bannedRoleIds: g.bannedRoleIds ?? '[]',
+        minSpend: g.minSpend ?? null, boostersBonus: g.boostersBonus ?? 0, maxParticipants: g.maxParticipants ?? 0,
+        announceChannelId: g.announceChannelId ?? null, pingRoleId: g.pingRoleId ?? null,
+        dmMessage: g.dmMessage ?? '', deleteOnEnd: g.deleteOnEnd ?? false,
+      })),
+      skipDuplicates: true,
+    }),
   ]);
 
   for (const proof of data.proofs ?? []) {
@@ -319,6 +341,21 @@ export async function importBackupData(data) {
     data: (data.transcripts ?? []).map((t) => ({
       id: t.id, channelId: t.channelId, userId: t.userId, userName: t.userName ?? '', type: t.type ?? 'SUPPORT',
       content: t.content, openedAt: toDate(t.openedAt), closedAt: toDate(t.closedAt), createdAt: toDate(t.createdAt),
+    })),
+    skipDuplicates: true,
+  });
+
+  await prisma.giveawayEntry.createMany({
+    data: (data.giveawayEntries ?? []).map((e) => ({
+      id: e.id, giveawayId: e.giveawayId, userId: e.userId, userName: e.userName ?? '',
+      avatarUrl: e.avatarUrl ?? '', weight: e.weight ?? 1, createdAt: toDate(e.createdAt),
+    })),
+    skipDuplicates: true,
+  });
+  await prisma.giveawayWinner.createMany({
+    data: (data.giveawayWinners ?? []).map((w) => ({
+      id: w.id, giveawayId: w.giveawayId, userId: w.userId, userName: w.userName ?? '',
+      avatarUrl: w.avatarUrl ?? '', createdAt: toDate(w.createdAt),
     })),
     skipDuplicates: true,
   });

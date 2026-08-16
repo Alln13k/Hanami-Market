@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const giveaways = await prisma.giveaway.findMany({
     orderBy: { createdAt: 'desc' },
-    include: { _count: { select: { entries: true } } },
+    include: { _count: { select: { entries: true } }, giveawayWinners: { orderBy: { createdAt: 'asc' } } },
     take: 100,
   });
   return NextResponse.json(giveaways);
@@ -21,6 +21,15 @@ export async function POST(req: NextRequest) {
   const description = String(body.description || '').trim();
   const durationMinutes = Math.max(1, parseInt(body.durationMinutes, 10) || 60);
   const winners = Math.max(1, Math.min(20, parseInt(body.winners, 10) || 1));
+  const requiredRoleId = String(body.requiredRoleId || '').trim() || null;
+  const bannedRoleIds = Array.isArray(body.bannedRoleIds) ? body.bannedRoleIds.filter(Boolean).map(String) : [];
+  const minSpend = body.minSpend ? Math.max(0, parseFloat(body.minSpend)) : null;
+  const boostersBonus = Math.max(0, parseInt(body.boostersBonus, 10) || 0);
+  const maxParticipants = Math.max(0, parseInt(body.maxParticipants, 10) || 0);
+  const announceChannelId = String(body.announceChannelId || '').trim() || null;
+  const pingRoleId = String(body.pingRoleId || '').trim() || null;
+  const dmMessage = String(body.dmMessage || '').trim();
+  const deleteOnEnd = !!body.deleteOnEnd;
 
   if (!channelId) return NextResponse.json({ error: 'Choisis le salon du giveaway.' }, { status: 400 });
   if (!title) return NextResponse.json({ error: 'Le titre est requis.' }, { status: 400 });
@@ -38,6 +47,15 @@ export async function POST(req: NextRequest) {
     description,
     durationMinutes,
     winners,
+    requiredRoleId,
+    bannedRoleIds,
+    minSpend,
+    boostersBonus,
+    maxParticipants,
+    announceChannelId,
+    pingRoleId,
+    dmMessage,
+    deleteOnEnd,
   });
   return NextResponse.json({ ok: true });
 }

@@ -17,6 +17,7 @@ type GiveawayRow = {
   status: string;
   createdAt: Date;
   _count: { entries: number };
+  giveawayWinners: { userId: string; userName: string }[];
 };
 
 function formatDuration(ms: number) {
@@ -73,6 +74,15 @@ export function GiveawayControls({ giveaways }: { giveaways: GiveawayRow[] }) {
                 <td><strong>{g.title}</strong>{g.description ? <div className="muted" style={{ fontSize: 12 }}>{g.description}</div> : null}</td>
                 <td>🎁 {g.prize}</td>
                 <td>{g._count.entries}</td>
+                <td>
+                  {g.giveawayWinners.length > 0 ? (
+                    <span style={{ fontSize: 13 }}>
+                      {g.giveawayWinners.map((w) => w.userName).join(', ')}
+                    </span>
+                  ) : (
+                    <span className="muted">—</span>
+                  )}
+                </td>
                 <td>{g.winners}</td>
                 <td>
                   {g.status === 'RUNNING' ? (

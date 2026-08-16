@@ -101,6 +101,15 @@ async function processAction(action) {
             description: String(payload.description || '').trim(),
             winners: Math.max(1, parseInt(payload.winners, 10) || 1),
             durationMinutes: Math.max(1, parseInt(payload.durationMinutes, 10) || 60),
+            requiredRoleId: payload.requiredRoleId || null,
+            bannedRoleIds: Array.isArray(payload.bannedRoleIds) ? payload.bannedRoleIds : [],
+            minSpend: payload.minSpend ? Number(payload.minSpend) : null,
+            boostersBonus: parseInt(payload.boostersBonus, 10) || 0,
+            maxParticipants: parseInt(payload.maxParticipants, 10) || 0,
+            announceChannelId: payload.announceChannelId || null,
+            pingRoleId: payload.pingRoleId || null,
+            dmMessage: String(payload.dmMessage || ''),
+            deleteOnEnd: !!payload.deleteOnEnd,
           });
         }
         break;
