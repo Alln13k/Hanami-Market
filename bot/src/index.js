@@ -13,12 +13,14 @@ async function deployCommands() {
     const rest = new REST({ version: '10' }).setToken(config.token);
     const data = commands.map((c) => c.data.toJSON());
     const guildId = await getSetting('guildId');
+    const names = commands.map((c) => `/${c.data.name}`).join(', ');
     if (guildId) {
       await rest.put(Routes.applicationGuildCommands(config.clientId, guildId), { body: data });
+      console.log(`🆕 Commandes slash déployées sur le serveur ${guildId} : ${names}`);
     } else {
       await rest.put(Routes.applicationCommands(config.clientId), { body: data });
+      console.log(`🆕 Commandes slash déployées en GLOBAL (peut mettre ~1h à apparaître) : ${names}`);
     }
-    console.log(`🆕 ${data.length} commandes slash déployées.`);
   } catch (err) {
     console.error('⚠️ Déploiement des commandes échoué :', err.message);
   }
