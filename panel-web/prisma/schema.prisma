@@ -143,6 +143,14 @@ model Product {
   updatedAt   DateTime @updatedAt
 }
 
+// Catégorie de produits (affichage groupé sur Discord et sur le panel)
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
 // Personne signalée comme scammeur (affichée dans l'embed du salon scam)
 model Scammer {
   id      String   @id @default(cuid())

@@ -7,7 +7,10 @@ import { StockForm } from './stock-form';
 export const dynamic = 'force-dynamic';
 
 export default async function ProductDetailPage({ params }: { params: { id: string } }) {
-  const product = await prisma.product.findUnique({ where: { id: params.id } });
+  const [product, categories] = await Promise.all([
+    prisma.product.findUnique({ where: { id: params.id } }),
+    prisma.category.findMany({ orderBy: { position: 'asc' } }),
+  ]);
   if (!product) notFound();
 
   return (
@@ -17,7 +20,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
 
       <div className="card" style={{ maxWidth: 720, marginBottom: 24 }}>
         <h2 style={{ marginTop: 0, fontSize: 18 }}>Modifier le produit</h2>
-        <ProductEditForm product={product} />
+        <ProductEditForm product={product} categories={categories.map((c) => c.name)} />
       </div>
 
       <div className="card" style={{ maxWidth: 720 }}>

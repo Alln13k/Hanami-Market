@@ -121,6 +121,7 @@ th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: upp
 .badge.REFUNDED { background: rgba(127,140,141,.15); color: #9aa0b3; }
 .badge.OPEN { background: rgba(88,101,242,.15); color: var(--primary); }
 .badge.CLOSED { background: rgba(127,140,141,.15); color: #9aa0b3; }
+.badge-green { background: rgba(46,204,113,.15); color: #27ae60; }
 
 /* Formulaires */
 form { display: flex; flex-direction: column; gap: 12px; }

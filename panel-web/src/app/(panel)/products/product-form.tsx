@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 
-export function ProductForm() {
+export function ProductForm({ categories }: { categories: string[] }) {
   const router = useRouter();
   const [form, setForm] = useState({ name: '', description: '', category: '', price: '', salePrice: '', stock: '', color: 'f49ecd' });
   const [saving, setSaving] = useState(false);
@@ -43,7 +43,12 @@ export function ProductForm() {
         </div>
         <div>
           <label>Catégorie</label>
-          <input value={form.category} onChange={(e) => set('category', e.target.value)} placeholder="Ex : Boosters, Bots, Comptes..." />
+          <input list="product-categories" value={form.category} onChange={(e) => set('category', e.target.value)} placeholder="Choisir ou écrire une catégorie" />
+          <datalist id="product-categories">
+            {categories.map((c) => (
+              <option key={c} value={c} />
+            ))}
+          </datalist>
         </div>
         <div>
           <label>Prix (€)</label>

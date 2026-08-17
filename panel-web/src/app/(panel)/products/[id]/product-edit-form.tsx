@@ -14,7 +14,7 @@ type Product = {
   color: string;
 };
 
-export function ProductEditForm({ product }: { product: Product }) {
+export function ProductEditForm({ product, categories }: { product: Product; categories: string[] }) {
   const router = useRouter();
   const [form, setForm] = useState({
     name: product.name,
@@ -62,7 +62,12 @@ export function ProductEditForm({ product }: { product: Product }) {
         </div>
         <div>
           <label>Catégorie</label>
-          <input value={form.category} onChange={(e) => set('category', e.target.value)} placeholder="Ex : Boosters, Bots, Comptes..." />
+          <input list="product-categories-edit" value={form.category} onChange={(e) => set('category', e.target.value)} placeholder="Choisir ou écrire une catégorie" />
+          <datalist id="product-categories-edit">
+            {categories.map((c) => (
+              <option key={c} value={c} />
+            ))}
+          </datalist>
         </div>
         <div>
           <label>Prix (€)</label>
