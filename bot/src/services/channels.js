@@ -56,12 +56,14 @@ export async function syncChannels() {
         name: role.name,
         color: role.hexColor.replace('#', ''),
         position: role.position ?? 0,
+        permissions: role.permissions.bitfield.toString(),
       },
       create: {
         roleId: role.id,
         name: role.name,
         color: role.hexColor.replace('#', ''),
         position: role.position ?? 0,
+        permissions: role.permissions.bitfield.toString(),
       },
     });
   }
@@ -86,6 +88,7 @@ export async function syncMembers() {
         name: member.displayName,
         avatarUrl: member.user?.displayAvatarURL() || '',
         isBooster: !!member.premiumSince,
+        roles: JSON.stringify(member.roles.cache.map((r) => r.id)),
         joinedAt: member.joinedAt,
       },
       create: {
@@ -93,6 +96,7 @@ export async function syncMembers() {
         name: member.displayName,
         avatarUrl: member.user?.displayAvatarURL() || '',
         isBooster: !!member.premiumSince,
+        roles: JSON.stringify(member.roles.cache.map((r) => r.id)),
         joinedAt: member.joinedAt,
       },
     });

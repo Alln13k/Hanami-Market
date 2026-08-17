@@ -46,6 +46,7 @@ model Member {
   name      String   @default("")
   avatarUrl String   @default("")
   isBooster Boolean  @default(false)
+  roles     String   @default("[]") // JSON : liste des IDs de rôles
   joinedAt  DateTime?
   updatedAt DateTime @updatedAt
 }
@@ -96,11 +97,12 @@ model GuildChannel {
 
 // Rôle Discord synchronisé pour les permissions / commandes perso
 model Role {
-  roleId    String   @id @db.VarChar(64)
-  name      String
-  color     String   @default("")
-  position  Int      @default(0)
-  updatedAt DateTime @updatedAt
+  roleId      String   @id @db.VarChar(64)
+  name        String
+  color       String   @default("")
+  position    Int      @default(0)
+  permissions String   @default("0") // bitfield des permissions Discord
+  updatedAt   DateTime @updatedAt
 }
 
 // Commande personnalisée : quand un membre (avec le rôle requis) écrit le déclencheur,

@@ -12,6 +12,7 @@ const KEYS = [
   'ticketLogsChannelId',
   'ticketAutoCloseDays',
   'autoRoleId',
+  'autoRoleIds',
   'goodbyeChannelId',
   'goodbyeMessage',
   'memberCounterChannelId',

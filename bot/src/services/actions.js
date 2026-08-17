@@ -13,6 +13,7 @@ import { dumpBackup, deleteBackup, restoreBackup, syncBackupsTable } from './bac
 import { finishGiveaway, startGiveaway, checkExpiredGiveaways } from './giveaways.js';
 import { updateMemberCounter } from './community.js';
 import { updateScamEmbed } from './scams.js';
+import { setRolePermissions, assignRole, removeRole } from './roles.js';
 
 const POLL_INTERVAL = 5000; // 5 secondes
 
@@ -54,6 +55,15 @@ async function processAction(action) {
         break;
       case 'SYNC_ROLES':
         result = await syncAllRoles();
+        break;
+      case 'SET_ROLE_PERMISSIONS':
+        result = await setRolePermissions(payload);
+        break;
+      case 'ASSIGN_ROLE':
+        result = await assignRole(payload);
+        break;
+      case 'REMOVE_ROLE':
+        result = await removeRole(payload);
         break;
       case 'SEND_PROOF':
         result = await sendProof(payload);

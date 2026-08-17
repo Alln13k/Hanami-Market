@@ -20,6 +20,7 @@ import {
   DatabaseBackup,
   Gift,
   Skull,
+  ShieldCheck,
 } from 'lucide-react';
 
 const NAV = [
@@ -30,6 +31,7 @@ const NAV = [
   { href: '/vouch', label: 'Vouch', icon: BadgeCheck },
   { href: '/welcome', label: 'Bienvenue', icon: PartyPopper },
   { href: '/invites', label: 'Invitations', icon: Link2 },
+  { href: '/roles', label: 'Rôles', icon: ShieldCheck },
   { href: '/moderation', label: 'Modération', icon: Shield },
   { href: '/giveaways', label: 'Giveaways', icon: Gift },
   { href: '/scams', label: 'Scam', icon: Skull },
