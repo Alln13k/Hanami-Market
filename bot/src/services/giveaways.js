@@ -102,6 +102,7 @@ export async function startGiveaway({
   const giveaway = await prisma.giveaway.create({
     data: {
       channelId: channel.id,
+      messageId: '', // rempli après l'envoi du message
       title,
       prize,
       description: description || '',

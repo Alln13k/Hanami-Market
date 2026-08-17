@@ -75,6 +75,7 @@ export async function createPoll({ channel, question, options, durationMinutes }
   const poll = await prisma.poll.create({
     data: {
       channelId: channel.id,
+      messageId: '', // rempli après l'envoi du message
       question,
       options: JSON.stringify(cleanOptions),
       endAt,
