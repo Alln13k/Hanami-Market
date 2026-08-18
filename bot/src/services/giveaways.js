@@ -1,27 +1,25 @@
 import { prisma } from '../prisma.js';
-import { shopEmbed } from '../utils/embeds.js';
+import { shopEmbed, hexToInt } from '../utils/embeds.js';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
 
 const timers = new Map(); // giveawayId -> setTimeout
 
-function formatDuration(ms) {
-  const s = Math.max(0, Math.floor(ms / 1000));
-  const d = Math.floor(s / 86400);
-  const h = Math.floor((s % 86400) / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const sec = s % 60;
-  if (d > 0) return `${d}j ${h}h ${m}min`;
-  if (h > 0) return `${h}h ${m}min ${sec}s`;
-  if (m > 0) return `${m}min ${sec}s`;
-  return `${sec}s`;
+// Nombre de membres participants et nombre total d'entrées (poids cumulés)
+async function getEntryStats(giveawayId) {
+  const [members, agg] = await Promise.all([
+    prisma.giveawayEntry.count({ where: { giveawayId } }),
+    prisma.giveawayEntry.aggregate({ where: { giveawayId }, _sum: { weight: true } }),
+  ]);
+  return { members, entries: agg._sum.weight || 0 };
 }
 
 function progressBar(g) {
   const total = g.endsAt.getTime() - g.createdAt.getTime();
-  if (total <= 0) return '▓▓▓▓▓▓▓▓▓▓';
-  const elapsed = Math.max(0, Math.min(1, (Date.now() - g.createdAt.getTime()) / total));
-  const filled = Math.round(elapsed * 10);
-  return '▓'.repeat(filled) + '░'.repeat(10 - filled);
+  const elapsed = total <= 0 ? 1 : Math.max(0, Math.min(1, (Date.now() - g.createdAt.getTime()) / total));
+  const pct = Math.round(elapsed * 100);
+  const W = 15;
+  const filled = Math.round(elapsed * W);
+  return '🟩'.repeat(filled) + '⬜'.repeat(W - filled) + ` **${pct}%**`;
 }
 
 function shuffle(arr) {
@@ -65,17 +63,34 @@ function restrictionsText(g) {
   return parts.length ? `\n\u26A0\uFE0F ${parts.join(' · ')}` : '';
 }
 
-function buildGiveawayEmbed(g, entries) {
-  const embed = shopEmbed(
-    '🎉 GIVEAWAY',
-    `**${g.title}**\n${g.description ? `${g.description}\n` : ''}` +
-      `🎁 **Prix** : ${g.prize}\n` +
-      `👥 **Participants** : ${entries.length}\n` +
-      `🏆 **Gagnants** : ${g.winners}\n` +
-      `\`${progressBar(g)}\`\n` +
-      `⏰ ${g.status === 'RUNNING' ? `Se termine dans **${formatDuration(g.endsAt.getTime() - Date.now())}**` : `Terminé le ${g.endedAt?.toLocaleString('fr-FR')}`}` +
-      restrictionsText(g)
-  );
+function buildGiveawayEmbed(g, membersCount, entriesCount) {
+  const endUnix = Math.floor(g.endsAt.getTime() / 1000);
+  const timeLine =
+    g.status === 'RUNNING'
+      ? `⏰ Se termine **<t:${endUnix}:R>**\n📅 <t:${endUnix}:F>`
+      : `⏰ Terminé le ${g.endedAt?.toLocaleString('fr-FR')}`;
+
+  const embed = new EmbedBuilder()
+    .setColor(hexToInt('f49ecd'))
+    .setTitle('🎉 GIVEAWAY')
+    .setDescription(
+      `**${g.title}**${g.description ? `\n${g.description}` : ''}\n\n` +
+        progressBar(g) +
+        restrictionsText(g)
+    )
+    .addFields(
+      { name: '🎁 Prix', value: g.prize, inline: true },
+      { name: '🏆 Gagnants', value: `${g.winners}`, inline: true },
+      {
+        name: '👥 Participants',
+        value: `${entriesCount} entrée${entriesCount > 1 ? 's' : ''} · ${membersCount} membre${membersCount > 1 ? 's' : ''}`,
+        inline: true,
+      },
+      { name: '⏰ Fin', value: timeLine, inline: false }
+    )
+    .setFooter({ text: 'Clique sur 🎉 Participer pour tenter ta chance !' })
+    .setTimestamp();
+
   return embed;
 }
 
@@ -128,7 +143,7 @@ export async function startGiveaway({
   const send = () =>
     channel.send({
       content: pingRoleId ? `<@&${pingRoleId}>` : '',
-      embeds: [buildGiveawayEmbed(giveaway, 0)],
+embeds: [buildGiveawayEmbed(giveaway, 0, 0)],
       components: [row],
     });
 
@@ -138,7 +153,7 @@ export async function startGiveaway({
   } catch {
     // Si le ping d'un rôle échoue (permissions), on renvoie sans ping
     try {
-      sent = await channel.send({ embeds: [buildGiveawayEmbed(giveaway, 0)], components: [row] });
+      sent = await channel.send({ embeds: [buildGiveawayEmbed(giveaway, 0, 0)], components: [row] });
     } catch (e) {
       return {
         ok: false,
@@ -199,12 +214,12 @@ export async function toggleJoin(interaction) {
 
   if (existing) {
     await prisma.giveawayEntry.delete({ where: { id: existing.id } });
-    const count = await prisma.giveawayEntry.count({ where: { giveawayId } });
+    const { members: count, entries: entriesCount } = await getEntryStats(giveawayId);
     const message = await interaction.channel?.messages.fetch(giveaway.messageId).catch(() => null);
     if (message) {
       await message
         .edit({
-          embeds: [buildGiveawayEmbed(giveaway, count)],
+          embeds: [buildGiveawayEmbed(giveaway, count, entriesCount)],
           components: [
             new ActionRowBuilder().addComponents(
               new ButtonBuilder().setLabel('🎉 Participer').setStyle(ButtonStyle.Success).setCustomId(`giveaway_join_${giveaway.id}`)
@@ -232,12 +247,12 @@ export async function toggleJoin(interaction) {
       weight,
     },
   });
-  const count = await prisma.giveawayEntry.count({ where: { giveawayId } });
+  const { members: count, entries: entriesCount } = await getEntryStats(giveawayId);
   const message = await interaction.channel?.messages.fetch(giveaway.messageId).catch(() => null);
   if (message) {
     await message
       .edit({
-        embeds: [buildGiveawayEmbed(giveaway, count)],
+        embeds: [buildGiveawayEmbed(giveaway, count, entriesCount)],
         components: [
           new ActionRowBuilder().addComponents(
             new ButtonBuilder().setLabel('🎉 Participer').setStyle(ButtonStyle.Success).setCustomId(`giveaway_join_${giveaway.id}`)
@@ -305,9 +320,9 @@ export async function finishGiveaway(giveawayId) {
     if (giveaway.deleteOnEnd) {
       await channel.messages.delete(giveaway.messageId).catch(() => {});
     } else {
-      const embed = buildGiveawayEmbed(giveaway, giveaway.entries.length).setDescription(
+      const entriesCount = giveaway.entries.reduce((a, e) => a + (e.weight || 1), 0);
+      const embed = buildGiveawayEmbed(giveaway, giveaway.entries.length, entriesCount).setDescription(
         `**${giveaway.title}**\n${giveaway.description ? `${giveaway.description}\n` : ''}\n` +
-          `🎁 **Prix** : ${giveaway.prize}\n` +
           `🏆 **Gagnants** : ${winnersText}\n` +
           `⏰ Terminé !`
       );
