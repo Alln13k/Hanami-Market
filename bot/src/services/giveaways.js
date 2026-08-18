@@ -275,11 +275,20 @@ async function dmWinners(giveaway, picked) {
 
 // Termine un giveaway : tirage des gagnants + message annonce + DM aux gagnants
 export async function finishGiveaway(giveawayId) {
+  // Revendication atomique : un seul appel passe (le statut passe à FINISHED
+  // immédiatement, sinon les appels concurrents du timer et du filet 30 s
+  // annonceraient tous les participants comme gagnants)
+  const claim = await prisma.giveaway.updateMany({
+    where: { id: giveawayId, status: 'RUNNING' },
+    data: { status: 'FINISHED', endedAt: new Date() },
+  });
+  if (claim.count === 0) return { ok: false, error: 'Giveaway introuvable ou déjà terminé' };
+
   const giveaway = await prisma.giveaway.findUnique({
     where: { id: giveawayId },
     include: { entries: true },
   });
-  if (!giveaway || giveaway.status !== 'RUNNING') return { ok: false, error: 'Giveaway introuvable ou déjà terminé' };
+  if (!giveaway) return { ok: false, error: 'Giveaway introuvable' };
 
   clearTimer(giveaway.id);
 
@@ -288,11 +297,6 @@ export async function finishGiveaway(giveawayId) {
 
   await recordWinners(giveaway.id, picked);
   await dmWinners(giveaway, picked);
-
-  await prisma.giveaway.update({
-    where: { id: giveaway.id },
-    data: { status: 'FINISHED', endedAt: new Date() },
-  });
 
   const guild = global.client?.guilds?.cache?.first();
   const channel = guild?.channels?.cache?.get(giveaway.channelId);
