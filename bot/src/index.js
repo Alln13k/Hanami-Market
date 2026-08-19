@@ -46,12 +46,28 @@ global.client = client;
 client.once(Events.ClientReady, async (c) => {
   console.log(`✅ Bot connecté en tant que ${c.user.tag}`);
 
+  // Attend que la base soit joignable (ne plante plus si elle est temporairement KO)
+  let dbOk = false;
+  for (let i = 1; i <= 20; i++) {
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      dbOk = true;
+      break;
+    } catch {
+      console.log(`⏳ Base de données inaccessible, nouvelle tentative (${i}/20)...`);
+      await new Promise((r) => setTimeout(r, 5000));
+    }
+  }
+  if (!dbOk) console.log('⚠️ Base toujours inaccessible après 20 tentatives — je continue et réessaierai périodiquement.');
+
   // Enregistre l'ID du serveur dans les réglages si nécessaire
   const guild = c.guilds.cache.first();
-  if (guild) {
-    if (!(await getSetting('guildId'))) {
-      await setSetting('guildId', guild.id);
-    }
+  if (guild && dbOk) {
+    try {
+      if (!(await getSetting('guildId'))) {
+        await setSetting('guildId', guild.id);
+      }
+    } catch {}
   }
 
   await syncGuild().catch(() => {});
@@ -89,4 +105,12 @@ client.on(Events.RoleUpdate, debounceSyncChannels);
 client.login(config.token).catch((err) => {
   console.error('❌ Impossible de se connecter :', err.message);
   process.exit(1);
+});
+
+// Filet de sécurité : une erreur isolée ne doit plus tuer le processus
+process.on('unhandledRejection', (reason) => {
+  console.error('⚠️ [unhandledRejection]', reason instanceof Error ? reason.message : reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('⚠️ [uncaughtException]', err?.message || err);
 });
